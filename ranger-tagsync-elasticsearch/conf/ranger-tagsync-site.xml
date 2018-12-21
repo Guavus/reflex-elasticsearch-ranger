@@ -1,0 +1,98 @@
+  <configuration>
+    
+    <property>
+      <name>ranger.tagsync.atlas.custom.resource.mappers</name>
+      <value>org.apache.ranger.tagsync.source.atlas.AtlasESResourceMapper</value>
+    </property>
+    
+    <property>
+      <name>ranger.tagsync.atlas.default.cluster.name</name>
+      <value>rajathdp</value>
+    </property>
+    
+    <property>
+      <name>ranger.tagsync.dest.ranger.endpoint</name>
+      <value>http://rajat-2.guavus.com:6080</value>
+    </property>
+    
+    <property>
+      <name>ranger.tagsync.dest.ranger.ssl.config.filename</name>
+      <value>/usr/hdp/current/ranger-tagsync/conf/ranger-policymgr-ssl.xml</value>
+    </property>
+    
+    <property>
+      <name>ranger.tagsync.dest.ranger.username</name>
+      <value>rangertagsync</value>
+    </property>
+    
+    <property>
+      <name>ranger.tagsync.kerberos.keytab</name>
+      <value></value>
+    </property>
+    
+    <property>
+      <name>ranger.tagsync.kerberos.principal</name>
+      <value></value>
+    </property>
+    
+    <property>
+      <name>ranger.tagsync.keystore.filename</name>
+      <value>/usr/hdp/current/ranger-tagsync/conf/rangertagsync.jceks</value>
+    </property>
+    
+    <property>
+      <name>ranger.tagsync.logdir</name>
+      <value>/var/log/ranger/tagsync</value>
+    </property>
+    
+    <property>
+      <name>ranger.tagsync.source.atlas</name>
+      <value>true</value>
+    </property>
+    
+    <property>
+      <name>ranger.tagsync.source.atlasrest</name>
+      <value>false</value>
+    </property>
+    
+    <property>
+      <name>ranger.tagsync.source.atlasrest.download.interval.millis</name>
+      <value>60000</value>
+    </property>
+    
+    <property>
+      <name>ranger.tagsync.source.atlasrest.endpoint</name>
+      <value>http://rajat-2.guavus.com:21000</value>
+    </property>
+    
+    <property>
+      <name>ranger.tagsync.source.atlasrest.keystore.filename</name>
+      <value>/usr/hdp/current/ranger-tagsync/conf/atlasuser.jceks</value>
+    </property>
+    
+    <property>
+      <name>ranger.tagsync.source.atlasrest.ssl.config.filename</name>
+      <value>/usr/hdp/current/ranger-tagsync/conf/atlas-tagsync-ssl.xml</value>
+    </property>
+    
+    <property>
+      <name>ranger.tagsync.source.atlasrest.username</name>
+      <value>admin</value>
+    </property>
+    
+    <property>
+      <name>ranger.tagsync.source.file</name>
+      <value>false</value>
+    </property>
+    
+    <property>
+      <name>ranger.tagsync.source.file.check.interval.millis</name>
+      <value></value>
+    </property>
+    
+    <property>
+      <name>ranger.tagsync.source.file.filename</name>
+      <value></value>
+    </property>
+    
+  </configuration>
