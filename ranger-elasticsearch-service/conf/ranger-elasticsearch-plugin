@@ -1,0 +1,95 @@
+{
+  "id":101,
+  "name":"elasticsearch",
+  "implClass":"com.guavus.ranger.services.RangerElasticSearchService",
+  "label":"ElasticSearch",
+  "description":"ElasticSearch",
+  "resources":[ 
+	{
+	"itemId":1,
+   	"name": "index",
+   	"type": "string",
+   	"level": 10,
+   	"mandatory": true,
+   	"lookupSupported": true,
+   	"recursiveSupported": false,
+   	"matcher": "org.apache.ranger.plugin.resourcematcher.RangerPathResourceMatcher",
+   	"matcherOptions": {"wildCard":true, "ignoreCase":true, "pathSeparatorChar":"."},
+   	"label": "index",
+   	"description": "index"
+  	}
+],
+  "accessTypes":[ 
+	{
+	"itemId":1,
+   	"name": "es_admin",
+   	"label": "es_admin",
+        "impliedGrants":[
+              "read",
+              "write"
+            ]
+
+  	},
+	{
+	"itemId":2,
+   	"name": "write",
+   	"label": "write",
+        "impliedGrants":[
+              "read"
+            ]
+
+  	},
+	{
+	"itemId":3,
+   	"name": "read",
+   	"label": "read"
+  	}
+],
+  "configs":[ 
+	{
+        "itemId":1,
+        "name": "es.url",
+        "type": "string",
+        "mandatory": true,
+        "label": "ES url"
+        },
+	{
+        "itemId":2,
+        "name": "es.spn",
+        "type": "string",
+        "mandatory": false,
+        "label": "ES Server Kerberos SPN"
+        },
+	{
+        "itemId":3,
+        "name": "principal",
+        "type": "string",
+        "mandatory": false,
+        "label": "Kerberos Principal"
+        },
+	{
+        "itemId":4,
+        "name": "keytab",
+        "type": "string",
+        "mandatory": false,
+        "label": "Kerberos KeyTab"
+        },
+	{
+        "itemId":5,
+        "name": "username",
+        "type": "string",
+        "mandatory": false,
+        "label": "Username"
+        },
+	{
+        "itemId":6,
+        "name": "password",
+        "type": "password",
+        "mandatory": false,
+        "label": "Password"
+        }
+],
+  "enums": [ ],
+  "contextEnrichers":[ ],
+  "policyConditions":[ ]
+}
