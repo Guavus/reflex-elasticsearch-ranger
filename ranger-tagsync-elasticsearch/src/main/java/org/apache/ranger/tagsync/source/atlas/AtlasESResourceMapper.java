@@ -49,13 +49,14 @@ public class AtlasESResourceMapper extends AtlasResourceMapper {
 		return getServiceResource(entityGuid, qualifiedName);
 	}
 
-	@Override
+	/*
 	public RangerServiceResource buildResource(final AtlasEntityHeader entity) throws Exception {
 		String entityGuid    = entity.getGuid();
 		String qualifiedName = getEntityAttribute(entity, ENTITY_ATTRIBUTE_QUALIFIED_NAME, String.class);
 
 		return getServiceResource(entityGuid, qualifiedName);
 	}
+	*/
 
 	private RangerServiceResource getServiceResource(String entityGuid, String qualifiedName) throws Exception {
 		String index = getResourceNameFromQualifiedName(qualifiedName);
