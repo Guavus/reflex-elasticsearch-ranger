@@ -22,7 +22,7 @@ print_lines(){
 if [[ ${PUSH_RPM_TO_ARTIFACTORY} == '1' ]]; then
     echo 
     echo "Pushing rpm for RANGER ES PLUGIN to artifactory"
-    curl --user $ARTIFACTORY_USERNAME:$ARTIFACTORY_PASSWORD -X PUT "$RPM_ARTIFACTORY/$BUILD_NUMBER/" -T ../dist/rangeres
+    curl --user $ARTIFACTORY_USERNAME:$ARTIFACTORY_PASSWORD -X PUT "$RPM_ARTIFACTORY/$BUILD_NUMBER/" -T ../dist/rangeres/*.rpm
     echo "Published RPM for RANGER ES PLUGIN successfully"
 
 else
