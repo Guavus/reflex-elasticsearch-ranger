@@ -21,6 +21,7 @@ To install plugin:
     </property>
 ```
 Make sure tag source 'atlas' is configured.
+
 7. Restart ranger tag sync services
 8. Open Ranger UI and create instance of Elasticsearch service
 9. Add Ranger policies for ‘kibanaserver’ user as well ‘ranger-es’ user and create policy for admin user.
