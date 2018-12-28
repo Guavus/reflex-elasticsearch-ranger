@@ -23,4 +23,4 @@ Make sure tag source 'atlas' is configured.
 7. Open Ranger UI and create instance of Elasticsearch service
 8. Add Ranger policies for ‘kibanaserver’ user as well ‘ranger-es’ user and create policy for admin user.
 
-NOTE: For enabling security (Authentication and Authorization) in Elasticsearch, please check https://github.com/Guavus/search-guard.
+**NOTE: For enabling security (Authentication and Authorization) in Elasticsearch, please check https://github.com/Guavus/search-guard.**
