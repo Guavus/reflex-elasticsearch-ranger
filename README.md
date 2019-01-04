@@ -10,10 +10,10 @@ This repostiory hosts Ranger plugin for Elasticsearch. The plugin supports index
 
 ## Installing Plugin:
 1. Install rpm on Ranger nodes
-2. Copy jar using command “cp /opt/guavus/ranger-es/lib/ranger-elasticsearch-service-1.0-SNAPSHOT-jar-with-dependencies.jar /usr/hdp/2.6.4.0-91/ranger-admin/ews/webapp/WEB-INF/classes/ranger-plugins/elasticsearch/ranger-elasticsearch-service-1.0-SNAPSHOT-jar-with-dependencies.jar” on Ranger nodes.
+2. Run ``mkdir -p /usr/hdp/current/ranger-admin/ews/webapp/WEB-INF/classes/ranger-plugins/elasticsearch`` and Copy jar using command “cp /opt/guavus/ranger-es/lib/ranger-elasticsearch-service-1.0-SNAPSHOT-jar-with-dependencies.jar /usr/hdp/current/ranger-admin/ews/webapp/WEB-INF/classes/ranger-plugins/elasticsearch/ranger-elasticsearch-service-1.0-SNAPSHOT-jar-with-dependencies.jar” on Ranger nodes.
 3. Using ranger REST API, create service definition for ES ``curl -u <admin user>:<admin passwd> -X POST -H "Accept: application/json" -H "Content-Type: application/json" --data @/opt/guavus/ranger-es/conf/ranger-elasticsearch-plugin http://<IP>:6080/service/plugins/definitions``
 4. Restart Ranger Admin process
-5. Copy jar for tag sync using command ``cp ranger-tagsync-elasticsearch-1.0-SNAPSHOT.jar /usr/hdp/2.6.4.0-91/ranger-tagsync/lib/`` on Ranger nodes.
+5. Copy jar for tag sync using command ``cp ranger-tagsync-elasticsearch-1.0-SNAPSHOT.jar /usr/hdp/current/ranger-tagsync/lib/`` on Ranger nodes.
 6. Using Ambari, edit ranger-tagsync-site.xml and add following configs:
 ```
     <property>
