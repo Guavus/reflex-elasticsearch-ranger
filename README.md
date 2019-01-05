@@ -25,6 +25,7 @@ Make sure tag source 'atlas' is configured.
 
 7. Restart ranger tag sync services
 8. Open Ranger UI and create instance of Elasticsearch service
-9. Add Ranger policies for ‘kibanaserver’ user as well ‘ranger-es’ user and create policy for admin user.
+9. Add following users on Ranger UI: ``<user for kibana eg. kibanaserver>`` and ``<user principal for ranger-es>`` user.
+10. Add Ranger policies for ‘kibanaserver’ user as well ‘ranger-es’ user and create policy for ES cluster admin user.
 
 **NOTE: For enabling security (Authentication and Authorization) in Elasticsearch, please check https://github.com/Guavus/search-guard.**
