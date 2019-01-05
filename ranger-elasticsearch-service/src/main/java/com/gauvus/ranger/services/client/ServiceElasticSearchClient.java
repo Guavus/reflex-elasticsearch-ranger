@@ -235,8 +235,7 @@ public class ServiceElasticSearchClient {
 	    RestClient lowLevelClient = null;
 	    if (this.spnegoClient != null) {
 	        try {
-	            SpnegoContext ctx = spnegoClient.createContextForSPN(this.esSPN);
-	            String authHeader = ctx.createTokenAsAuthroizationHeader();
+	            String authHeader = spnegoClient.createAuthroizationHeaderForSPN(this.esSPN);
 	            Header[] headers = {
                     new BasicHeader("Authorization", authHeader)
 	            };
