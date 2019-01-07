@@ -2,28 +2,16 @@
 
 
 SHELL := /bin/bash
+REL_VERSION := $(shell cat .VERSION)
 
-
-publish-all: \
-	clean \
-	publish-rpms \
 
 all: \
 	clean \
 	gather-dist-source-jobs 
 		
-
-
-publish-rpms: \
-	gather-dist-source-jobs \
-	gather-dist-rpms
-	@echo "= = = = = = = > START TARGET : [publish-rpms] < = = = = = = ="
-	cd rpm-mgmt; ./deploy_rpms.sh
-	@echo "= = = = = = = = > END TARGET : [publish-rpms] < = = = = = = ="
-
-
-gather-dist-rpms: 
-	cd rpm-mgmt; rm -rf .package;  ./build_rpm.sh;  
+gather-dist-rpms:
+	VER=`cat .VERSION`
+	rm -rf .package;  ./build_rpm.sh $(REL_VERSION) 0;  
 
 gather-dist-source-jobs: \
 	build-source \
@@ -33,6 +21,8 @@ gather-dist-source-jobs: \
 clean:
 	@echo "= = = = = = = > START TARGET : [clean] < = = = = = = ="
 	rm -rf dist
+	rm -rf ranger-elasticsearch-service/target
+	rm -rf ranger-tagsync-elasticsearch/target
 	@echo "= = = = = = = = > END TARGET : [clean] < = = = = = = ="
 
 
@@ -48,4 +38,4 @@ dist:
 	mkdir -p dist/installer
 
 
-.PHONY: publish-all all publish-rpms gather-dist-source-jobs clean build-source dist
+.PHONY: all gather-dist-source-jobs clean build-source dist
