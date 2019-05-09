@@ -4,11 +4,11 @@
 	<groupId>com.guavus.ranger</groupId>
 	<artifactId>ranger-tagsync-elasticsearch</artifactId>
 	<packaging>jar</packaging>
-	<version>1.0-SNAPSHOT</version>
-	<name>ranger-elasticsearch-service</name>
+	<version>2.0-SNAPSHOT</version>
+	<name>ranger-tagsync-elasticsearch</name>
 	<url>http://maven.apache.org</url>
 	<properties>
-		<atlas.version>0.8.2</atlas.version>
+		<atlas.version>1.1.0</atlas.version>
 	</properties>
 	<build>
 		<plugins>
@@ -62,17 +62,11 @@
 		<dependency>
 			<groupId>org.apache.ranger</groupId>
 			<artifactId>ranger-tagsync</artifactId>
-			<!--version>0.7.2-SNAPSHOT</version-->
-			<version>0.7.0</version>
+			<version>1.2.0</version>
 		</dependency>
         <dependency>
             <groupId>org.apache.atlas</groupId>
             <artifactId>atlas-notification</artifactId>
-            <version>${atlas.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.atlas</groupId>
-            <artifactId>atlas-typesystem</artifactId>
             <version>${atlas.version}</version>
         </dependency>
         <dependency>

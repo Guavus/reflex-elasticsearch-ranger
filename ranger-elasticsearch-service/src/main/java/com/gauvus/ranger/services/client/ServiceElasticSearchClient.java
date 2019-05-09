@@ -27,6 +27,7 @@ import org.apache.log4j.Logger;
 import org.apache.ranger.plugin.client.BaseClient;
 import org.apache.ranger.plugin.service.ResourceLookupContext;
 import org.apache.ranger.plugin.util.TimedEventUtil;
+import org.apache.ranger.plugin.util.PasswordUtils;
 import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
@@ -63,7 +64,8 @@ public class ServiceElasticSearchClient {
 		this.esUrl = configs.get("es.url");
 		this.esSPN = configs.get("es.spn");
 		this.username = configs.get("username");
-		this.password = configs.get("password");
+                String encryptedPasswd = configs.get("password");
+		this.password = PasswordUtils.getDecryptPassword(encryptedPasswd);
         
 		String princName = configs.get("principal");
         String keytabPath = configs.get("keytab");

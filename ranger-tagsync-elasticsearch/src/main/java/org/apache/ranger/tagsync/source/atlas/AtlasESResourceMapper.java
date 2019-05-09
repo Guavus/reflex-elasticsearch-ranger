@@ -22,18 +22,15 @@ package org.apache.ranger.tagsync.source.atlas;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.atlas.model.instance.AtlasEntityHeader;
-import org.apache.atlas.typesystem.IReferenceableInstance;
 import org.apache.commons.lang.StringUtils;
 import org.apache.ranger.plugin.model.RangerPolicy;
 import org.apache.ranger.plugin.model.RangerPolicy.RangerPolicyResource;
 import org.apache.ranger.plugin.model.RangerServiceResource;
+import org.apache.ranger.tagsync.source.atlasrest.RangerAtlasEntity;
 
 public class AtlasESResourceMapper extends AtlasResourceMapper {
 	public static final String ENTITY_TYPE_ES_INDEX = "es_index";
 	public static final String RANGER_TYPE_ES_INDEX = "index";
-
-	public static final String ENTITY_ATTRIBUTE_QUALIFIED_NAME = "qualifiedName";
 
 	public static final String[] SUPPORTED_ENTITY_TYPES = { ENTITY_TYPE_ES_INDEX };
 
@@ -42,23 +39,8 @@ public class AtlasESResourceMapper extends AtlasResourceMapper {
 	}
 
 	@Override
-	public RangerServiceResource buildResource(final IReferenceableInstance entity) throws Exception {
-		String entityGuid    = entity.getId() != null ? entity.getId()._getId() : null;
-		String qualifiedName = getEntityAttribute(entity, ENTITY_ATTRIBUTE_QUALIFIED_NAME, String.class);
-
-		return getServiceResource(entityGuid, qualifiedName);
-	}
-
-	/*
-	public RangerServiceResource buildResource(final AtlasEntityHeader entity) throws Exception {
-		String entityGuid    = entity.getGuid();
-		String qualifiedName = getEntityAttribute(entity, ENTITY_ATTRIBUTE_QUALIFIED_NAME, String.class);
-
-		return getServiceResource(entityGuid, qualifiedName);
-	}
-	*/
-
-	private RangerServiceResource getServiceResource(String entityGuid, String qualifiedName) throws Exception {
+	public RangerServiceResource buildResource(final RangerAtlasEntity entity) throws Exception {
+		String qualifiedName = (String)entity.getAttributes().get(AtlasResourceMapper.ENTITY_ATTRIBUTE_QUALIFIED_NAME);
 		String index = getResourceNameFromQualifiedName(qualifiedName);
 
 		if(StringUtils.isEmpty(index)) {
@@ -82,6 +64,7 @@ public class AtlasESResourceMapper extends AtlasResourceMapper {
 
 		elements.put(RANGER_TYPE_ES_INDEX, new RangerPolicyResource(index, isExcludes, isRecursive));
 
+		String  entityGuid  = entity.getGuid();
 		String  serviceName = getRangerServiceName(clusterName);
 
 		return new RangerServiceResource(entityGuid, serviceName, elements);
