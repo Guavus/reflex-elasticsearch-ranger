@@ -1,21 +1,10 @@
 package com.gauvus.ranger.services.client;
 
-import java.io.IOException;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
-
+import com.google.common.base.Strings;
+import com.kerb4j.client.SpnegoClient;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
-import org.apache.http.RequestLine;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
@@ -31,9 +20,12 @@ import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
 
-import com.google.common.base.Strings;
-import com.kerb4j.client.SpnegoClient;
-import com.kerb4j.client.SpnegoContext;
+import java.io.IOException;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 
 public class ServiceElasticSearchClient {
 	private static final Logger LOG = Logger.getLogger(ServiceElasticSearchClient.class);
@@ -254,6 +246,7 @@ public class ServiceElasticSearchClient {
 	            if (LOG.isDebugEnabled()) {
 	                e.printStackTrace();
 	            }
+	            e.printStackTrace();
 	            LOG.error("Exception in Spnego authentication: " + e.getMessage());
 	            return null;
 	        }
@@ -277,9 +270,18 @@ public class ServiceElasticSearchClient {
 	
 	public static void main (String args[]) {
 	    Map<String, String> configs = new HashMap<String,String>();
-	    configs.put("es.url", args[0]);
-	    configs.put("username", args[1]);
-	    configs.put("password", args[2]);
+//	    configs.put("es.url", args[0]);
+//	    configs.put("username", args[1]);
+//	    configs.put("password", args[2]);
+		configs.put("es.url", args[0]);
+		if (args.length <= 3) {
+			configs.put("username", args[1]);
+			configs.put("password", args[2]);
+		} else {
+			configs.put("es.spn", args[1]);
+			configs.put("keytab", args[2]);
+			configs.put("principal", args[3]);
+		}
 
 	    ServiceElasticSearchClient serv = new ServiceElasticSearchClient("elasticsearch", configs);
 	    try {
@@ -299,4 +301,8 @@ public class ServiceElasticSearchClient {
 	        e.printStackTrace();
 	    }
 	}
+
+	//java -cp  ranger-elasticsearch-service-1.0-SNAPSHOT-jar-with-dependencies.jar com.gauvus.ranger.services.client.ServiceElasticSearchClient rafsoak001-mst-01.cloud.in.guavus.com:9200 HTTP/rafsoak001-mst-01.cloud.in.guavus.com /etc/security/keytabs/hdfs.headless.keytab hdfs-rafd002@GVS.GGN
+
+	//cp /tmp/ranger-elasticsearch-service-1.0-SNAPSHOT-jar-with-dependencies.jar /usr/hdp/current/ranger-admin/ews/webapp/WEB-INF/classes/ranger-plugins/elasticsearch/ranger-elasticsearch-service-1.0-SNAPSHOT-jar-with-dependencies.jar
 }
