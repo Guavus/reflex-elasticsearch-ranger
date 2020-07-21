@@ -4,6 +4,7 @@ import com.amazon.dlic.auth.ldap.util.LdapHelper;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.guavus.ranger.support.RangerLdapHelper;
 import org.elasticsearch.common.settings.Settings;
 
 import java.util.Set;
@@ -45,7 +46,7 @@ public class UserGroupMappingCache {
                 .build(
                         new CacheLoader<String, Set<String>>() {
                             public Set<String> load(String key) throws Exception {
-                                return LdapHelper.findUserGroup(settings, key);
+                                return RangerLdapHelper.findUserGroup(settings, key);
                             }
 
                         });
