@@ -79,15 +79,20 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
     private static final Set<String> NULL_SET = Sets.newHashSet((String)null);
     private final static IndicesOptions DEFAULT_INDICES_OPTIONS = IndicesOptions.lenientExpandOpen();
     private static final Set<String> NO_INDICES_SET = Sets.newHashSet("\\",";",",","/","|");
+
+    // access types
     public static final String ACCESS_TYPE_READ = "read";
     public static final String ACCESS_TYPE_WRITE = "write";
-    public static final String ACCESS_TYPE_ADMIN = "es_admin";
+    public static final String ACCESS_TYPE_ADMIN = "admin";
+    public static final String ACCESS_TYPE_MONITOR_INDICES = "monitor_indices";
+    public static final String ACCESS_TYPE_MONITOR_CLUSTER = "monitor_cluster";
 
     protected final Logger actionTrace = LogManager.getLogger("opendistro_security_action_trace");
     private final ClusterService clusterService;
 
     private final IndexNameExpressionResolver resolver;
 
+    // Initialized because used later in opendistro code
     private final AuditLog auditLog;
     private ThreadContext threadContext;
     //private final static IndicesOptions DEFAULT_INDICES_OPTIONS = IndicesOptions.lenientExpandOpen();
@@ -810,7 +815,7 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
                 //Add code for Ranger - Admin
                 indices.clear();
                 indices.add(indexName);
-                allowAction = checkRangerAuthorization(user, caller, "write", indices, "write");
+                allowAction = checkRangerAuthorization(user, caller, ACCESS_TYPE_WRITE, indices, ACCESS_TYPE_WRITE);
                 presponse.allowed = allowAction;
 
                 if (!allowAction) {
@@ -839,7 +844,7 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
                 types.addAll(t.v2());
             }
             //Add code for Ranger - Admin
-            allowAction = checkRangerAuthorization(user, caller, "es_admin", indices, "es_admin") ;
+            allowAction = checkRangerAuthorization(user, caller, ACCESS_TYPE_ADMIN, indices, ACCESS_TYPE_ADMIN) ;
             presponse.allowed = allowAction;
 
             if (!allowAction) {
@@ -859,7 +864,7 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
                 final Tuple<Set<String>, Set<String>> t = resolveIndicesRequest(user, action, (IndicesRequest) request, metaData);
                 indices.addAll(t.v1());
                 types.addAll(t.v2());
-                allowAction = checkRangerAuthorization(user, caller, "read", indices, "read");
+                allowAction = checkRangerAuthorization(user, caller, ACCESS_TYPE_READ, indices, ACCESS_TYPE_READ);
                 presponse.allowed = allowAction;
 
                 if (!allowAction) {
@@ -884,7 +889,7 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
                     //Add code for Ranger - write
 
                 }
-                allowAction = checkRangerAuthorization(user, caller, "write", indices, "write");
+                allowAction = checkRangerAuthorization(user, caller, ACCESS_TYPE_WRITE, indices, ACCESS_TYPE_WRITE);
                 presponse.allowed = allowAction;
 
                 if (!allowAction) {
@@ -903,7 +908,7 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
                     types.addAll(t.v2());
                     //Add code for Ranger - READ
                 }
-                allowAction = checkRangerAuthorization(user, caller, "read", indices, "read");
+                allowAction = checkRangerAuthorization(user, caller, ACCESS_TYPE_READ, indices, ACCESS_TYPE_READ);
                 presponse.allowed = allowAction;
 
                 if (!allowAction) {
@@ -922,7 +927,7 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
                     types.addAll(t.v2());
                     //Add code for Ranger - READ
                 }
-                allowAction = checkRangerAuthorization(user, caller, "read", indices, "read");
+                allowAction = checkRangerAuthorization(user, caller, ACCESS_TYPE_READ, indices, ACCESS_TYPE_READ);
                 presponse.allowed = allowAction;
 
                 if (!allowAction) {
@@ -941,7 +946,7 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
                     types.addAll(t.v2());
                     //Add code for Ranger - Read
                 }
-                allowAction = checkRangerAuthorization(user, caller, "read", indices, "read");
+                allowAction = checkRangerAuthorization(user, caller, ACCESS_TYPE_READ, indices, ACCESS_TYPE_READ);
                 presponse.allowed = allowAction;
 
                 if (!allowAction) {
@@ -959,7 +964,7 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
                 indices.clear();
                 indices.addAll(t.v1());
                 types.addAll(t.v2());
-                allowAction = checkRangerAuthorization(user, caller, "write", indices, "write");
+                allowAction = checkRangerAuthorization(user, caller, ACCESS_TYPE_WRITE, indices, ACCESS_TYPE_WRITE);
                 if (!allowAction) {
                     presponse.allowed = allowAction;
 
@@ -976,7 +981,7 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
                 indices.addAll(t.v1());
                 types.addAll(t.v2());
                 //Add code for Ranger - Admin
-                allowAction = checkRangerAuthorization(user, caller, "read", indices, "read");
+                allowAction = checkRangerAuthorization(user, caller, ACCESS_TYPE_READ, indices, ACCESS_TYPE_READ);
                 presponse.allowed = allowAction;
 
                 if (!allowAction) {
@@ -1000,8 +1005,8 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
         if (action.startsWith("cluster:monitor/")) {
             //indices.clear();
             //indices.add("_cluster");
-            //allowAction = checkRangerAuthorization(user, caller, "read", indices, "read");
-            allowAction = checkRangerAuthorization(user, caller, "monitor_cluster", indices, "monitor_cluster");
+            //allowAction = checkRangerAuthorization(user, caller, ACCESS_TYPE_READ, indices, ACCESS_TYPE_READ);
+            allowAction = checkRangerAuthorization(user, caller, ACCESS_TYPE_MONITOR_CLUSTER, indices, ACCESS_TYPE_MONITOR_CLUSTER);
         } //else if (action.startsWith("cluster:")) { // es_admin had permission
             /* Not clear on following so skipping:
              *             || action.startsWith(SearchScrollAction.NAME)
@@ -1009,14 +1014,14 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
              */
 //            indices.clear();
 //            indices.add("_cluster");
-//            allowAction = checkRangerAuthorization(user, caller, "es_admin", indices, "es_admin");
+//            allowAction = checkRangerAuthorization(user, caller, ACCESS_TYPE_ADMIN, indices, ACCESS_TYPE_ADMIN);
         //}
         else if (action.startsWith("indices:monitor/")) {
-            allowAction = checkRangerAuthorization(user, caller, "monitor_indices", indices, "monitor_indices");
+            allowAction = checkRangerAuthorization(user, caller, ACCESS_TYPE_MONITOR_INDICES, indices, ACCESS_TYPE_MONITOR_INDICES);
         } else if (action.startsWith("indices:admin/create")
                 || (action.startsWith("indices:admin/mapping/put"))) {
 
-            allowAction = checkRangerAuthorization(user, caller, "write", indices, "write");
+            allowAction = checkRangerAuthorization(user, caller, ACCESS_TYPE_WRITE, indices, ACCESS_TYPE_WRITE);
         } else if ((action.startsWith("indices:data/read"))
                 //|| (action.startsWith("indices:monitor/"))
                 || (action.startsWith("indices:admin/template/get"))
@@ -1029,28 +1034,28 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
                 || (action.startsWith("indices:admin/validate/query"))
                 || (action.startsWith("indices:admin/get"))){
             //Add code for Ranger - Read
-            allowAction = checkRangerAuthorization(user, caller, "read", indices, "read");
+            allowAction = checkRangerAuthorization(user, caller, ACCESS_TYPE_READ, indices, ACCESS_TYPE_READ);
 
             // Monitoring stats should be available even if cluster level read permission is present - segregated
 //            if (!allowAction && (action.startsWith("indices:monitor/"))) {
 //                Set<String> indices_tmp = new HashSet<String>();
 //                indices_tmp.add("_cluster");
-//                allowAction = checkRangerAuthorization(user, caller, "read", indices_tmp, "read");
+//                allowAction = checkRangerAuthorization(user, caller, ACCESS_TYPE_READ, indices_tmp, ACCESS_TYPE_READ);
 //            }
         } else if (action.startsWith("indices:data/write")
                 || (action.startsWith("indices:data/"))) {
             //Add code for Ranger - Write/Delete
-            allowAction = checkRangerAuthorization(user, caller, "write", indices, "write");
+            allowAction = checkRangerAuthorization(user, caller, ACCESS_TYPE_WRITE, indices, ACCESS_TYPE_WRITE);
         } else if (action.startsWith("indices:")) {
             log.debug("All remaining unknown actions with indices:");
 
             //Add code for Ranger - Admin
-            allowAction = checkRangerAuthorization(user, caller, "es_admin", indices, "es_admin");
+            allowAction = checkRangerAuthorization(user, caller, ACCESS_TYPE_ADMIN, indices, ACCESS_TYPE_ADMIN);
         } else {
             log.debug("All remaining unknown actions");
             indices.clear();
             indices.add("_cluster");
-            allowAction = checkRangerAuthorization(user, caller, "es_admin", indices, "es_admin");
+            allowAction = checkRangerAuthorization(user, caller, ACCESS_TYPE_ADMIN, indices, ACCESS_TYPE_ADMIN);
         }
 
         if (!allowAction) {
