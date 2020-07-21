@@ -398,7 +398,7 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
                             if (log.isDebugEnabled()) {
                                 e.printStackTrace();
                             }
-                            log.warn("Exception in retrieving user group mapping : " + e.getMessage() );
+                            log.warn("Exception in retrieving user group mapping : " + e.getMessage());
                         }
                         return null;
                     }
@@ -998,23 +998,27 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
 
         log.debug("Action requested: " + action + " , indices: " + String.join(",", indices));
         if (action.startsWith("cluster:monitor/")) {
-            indices.clear();
-            indices.add("_cluster");
-            allowAction = checkRangerAuthorization(user, caller, "read", indices, "read");
-        } else if (action.startsWith("cluster:")) {
+            //indices.clear();
+            //indices.add("_cluster");
+            //allowAction = checkRangerAuthorization(user, caller, "read", indices, "read");
+            allowAction = checkRangerAuthorization(user, caller, "monitor_cluster", indices, "monitor_cluster");
+        } //else if (action.startsWith("cluster:")) { // es_admin had permission
             /* Not clear on following so skipping:
              *             || action.startsWith(SearchScrollAction.NAME)
              *              || (action.equals("indices:data/read/coordinate-msearch"))
              */
-            indices.clear();
-            indices.add("_cluster");
-            allowAction = checkRangerAuthorization(user, caller, "es_admin", indices, "es_admin");
+//            indices.clear();
+//            indices.add("_cluster");
+//            allowAction = checkRangerAuthorization(user, caller, "es_admin", indices, "es_admin");
+        //}
+        else if (action.startsWith("indices:monitor/")) {
+            allowAction = checkRangerAuthorization(user, caller, "monitor_indices", indices, "monitor_indices");
         } else if (action.startsWith("indices:admin/create")
                 || (action.startsWith("indices:admin/mapping/put"))) {
 
             allowAction = checkRangerAuthorization(user, caller, "write", indices, "write");
         } else if ((action.startsWith("indices:data/read"))
-                || (action.startsWith("indices:monitor/"))
+                //|| (action.startsWith("indices:monitor/"))
                 || (action.startsWith("indices:admin/template/get"))
                 || (action.startsWith("indices:admin/mapping/get"))
                 || (action.startsWith("indices:admin/mappings/get"))
@@ -1027,12 +1031,12 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
             //Add code for Ranger - Read
             allowAction = checkRangerAuthorization(user, caller, "read", indices, "read");
 
-            // Monitoring stats should be available even if cluster level read permission is present
-            if (!allowAction && (action.startsWith("indices:monitor/"))) {
-                Set<String> indices_tmp = new HashSet<String>();
-                indices_tmp.add("_cluster");
-                allowAction = checkRangerAuthorization(user, caller, "read", indices_tmp, "read");
-            }
+            // Monitoring stats should be available even if cluster level read permission is present - segregated
+//            if (!allowAction && (action.startsWith("indices:monitor/"))) {
+//                Set<String> indices_tmp = new HashSet<String>();
+//                indices_tmp.add("_cluster");
+//                allowAction = checkRangerAuthorization(user, caller, "read", indices_tmp, "read");
+//            }
         } else if (action.startsWith("indices:data/write")
                 || (action.startsWith("indices:data/"))) {
             //Add code for Ranger - Write/Delete
