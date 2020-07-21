@@ -43,7 +43,17 @@
 	"itemId":3,
    	"name": "read",
    	"label": "read"
-  	}
+  	},
+  	{
+    "itemId":4,
+    "name": "monitor_indices",
+    "label": "monitor_indices"
+    },
+    {
+    "itemId":5,
+    "name": "monitor_cluster",
+    "label": "monitor_cluster"
+    }
 ],
   "configs":[ 
 	{
