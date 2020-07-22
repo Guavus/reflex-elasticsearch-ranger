@@ -1004,19 +1004,8 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
 
         log.debug("Action requested: " + action + " , indices: " + String.join(",", indices));
         if (action.startsWith("cluster:monitor/")) {
-            //indices.clear();
-            //indices.add("_cluster");
-            //allowAction = checkRangerAuthorization(user, caller, ACCESS_TYPE_READ, indices, ACCESS_TYPE_READ);
             allowAction = checkRangerAuthorization(user, caller, ACCESS_TYPE_MONITOR_CLUSTER, indices, ACCESS_TYPE_MONITOR_CLUSTER);
-        } //else if (action.startsWith("cluster:")) { // es_admin had permission
-            /* Not clear on following so skipping:
-             *             || action.startsWith(SearchScrollAction.NAME)
-             *              || (action.equals("indices:data/read/coordinate-msearch"))
-             */
-//            indices.clear();
-//            indices.add("_cluster");
-//            allowAction = checkRangerAuthorization(user, caller, ACCESS_TYPE_ADMIN, indices, ACCESS_TYPE_ADMIN);
-        //}
+        }
         else if (action.startsWith("indices:monitor/")) {
             allowAction = checkRangerAuthorization(user, caller, ACCESS_TYPE_MONITOR_INDICES, indices, ACCESS_TYPE_MONITOR_INDICES);
         } else if (action.startsWith("indices:admin/create")
@@ -1024,7 +1013,6 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
 
             allowAction = checkRangerAuthorization(user, caller, ACCESS_TYPE_WRITE, indices, ACCESS_TYPE_WRITE);
         } else if ((action.startsWith("indices:data/read"))
-                //|| (action.startsWith("indices:monitor/"))
                 || (action.startsWith("indices:admin/template/get"))
                 || (action.startsWith("indices:admin/mapping/get"))
                 || (action.startsWith("indices:admin/mappings/get"))
@@ -1036,13 +1024,7 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
                 || (action.startsWith("indices:admin/get"))){
             //Add code for Ranger - Read
             allowAction = checkRangerAuthorization(user, caller, ACCESS_TYPE_READ, indices, ACCESS_TYPE_READ);
-
-            // Monitoring stats should be available even if cluster level read permission is present - segregated
-//            if (!allowAction && (action.startsWith("indices:monitor/"))) {
-//                Set<String> indices_tmp = new HashSet<String>();
-//                indices_tmp.add("_cluster");
-//                allowAction = checkRangerAuthorization(user, caller, ACCESS_TYPE_READ, indices_tmp, ACCESS_TYPE_READ);
-//            }
+            
         } else if (action.startsWith("indices:data/write")
                 || (action.startsWith("indices:data/"))) {
             //Add code for Ranger - Write/Delete
