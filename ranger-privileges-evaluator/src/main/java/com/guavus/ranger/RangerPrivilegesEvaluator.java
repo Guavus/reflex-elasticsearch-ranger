@@ -222,13 +222,14 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
                 String pluginPath = null;
                 for(URL url: urls){
                     String urlFile = url.getFile();
-                    int idx = urlFile.indexOf("ranger-plugins-common");
+                    //log.info("urlFile : " + urlFile);
+                    int idx = urlFile.indexOf("kafka-clients");
                     if (idx != -1) {
                         pluginPath = urlFile.substring(0, idx);
                     }
                 }
 
-                log.debug("pluginpath: " + pluginPath);
+                log.debug("pluginpath: " + pluginPath); // debug
 
                 try {
                     Method method = URLClassLoader.class.getDeclaredMethod("addURL", new Class[]{URL.class});
@@ -253,7 +254,7 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
             rangerPlugin.init();
             log.debug("ranger init try done");
         } catch (Throwable e) {
-            log.error("Caught exception while methodX. Please investigate: "
+            log.error("Caught exception while rangerPlugin.init(). Please investigate: "
                     + e
                     + Arrays.asList(e.getStackTrace())
                     .stream()

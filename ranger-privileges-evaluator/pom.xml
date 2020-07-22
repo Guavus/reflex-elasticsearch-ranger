@@ -108,8 +108,16 @@
       <version>1.2</version>
       <scope>provided</scope>
     </dependency>
-
     <!-- END: These are included as were coming as compile scope in opendistro tree  !-->
+
+    <!-- START: temporary fix for cred jar (remove this) (TEMP FIX: hard coded pass in jar)  !-->
+    <dependency>
+      <groupId> org.apache.ranger</groupId>
+      <artifactId>ranger-plugins-cred</artifactId>
+      <version>1.2.0</version>
+      <scope>provided</scope>
+    </dependency>
+    <!-- END: temporary fix for cred jar (remove this)  !-->
 
     <dependency>
       <groupId>org.apache.ranger</groupId>
