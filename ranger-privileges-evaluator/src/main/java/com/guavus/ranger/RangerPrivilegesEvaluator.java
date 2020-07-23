@@ -115,7 +115,7 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
     private String rangerUrl = null;
     private UserGroupMappingCache usrGrpCache = null;
     private boolean initUGI = false;
-    private boolean isInitialised = false;
+    private boolean isInitialised = true;
 
     @Inject
     public RangerPrivilegesEvaluator(final ClusterService clusterService, final ThreadPool threadPool,
@@ -149,34 +149,42 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
         configurationRepository.subscribeOnChange("roles", tenantHolder);
 
         log.info(String.format("es plugin app id : %s", settings.get(ConfigConstants.OPENDISTRO_AUTH_RANGER_APP_ID)));
-        String ES_PLUGIN_APP_ID = settings.get(ConfigConstants.OPENDISTRO_AUTH_RANGER_APP_ID);
+        String RANGER_ES_PLUGIN_APP_ID = settings.get(ConfigConstants.OPENDISTRO_AUTH_RANGER_APP_ID);
 
-        if (ES_PLUGIN_APP_ID == null) {
+        if (RANGER_ES_PLUGIN_APP_ID == null) {
+            isInitialised = false;
             throw new ElasticsearchSecurityException("Open Distro Ranger plugin enabled but appId config not valid");
         }
 
-        log.info("ES_PLUGIN_APP_ID: " + ES_PLUGIN_APP_ID);
-        log.info("ES_PLUGIN_APP_ID successfully initialized");
+        log.info("RANGER_ES_PLUGIN_APP_ID: " + RANGER_ES_PLUGIN_APP_ID);
 
         try {
             if (!initializeUGI(settings)) {
                 log.error("UGI not getting initialized.");
             }
         } catch (Exception e) {
-            e.getCause();
-            e.getMessage();
+            isInitialised = false;
+            log.error(e.getCause());
             e.printStackTrace();
         }
 
-        configureRangerPlugin(settings);
-
-        log.info("Ranger Plugin successfully initialized");
+        try {
+            configureRangerPlugin(settings);
+        } catch (Exception e) {
+            isInitialised = false;
+            log.error(e.getCause());
+            e.printStackTrace();
+        }
 
         usrGrpCache = new UserGroupMappingCache();
         usrGrpCache.init();
 
-        log.info("RangerPrivilegesEvaluator successfully initialized");
-        isInitialised = true;
+        if (isInitialised) {
+            log.info("RangerPrivilegesEvaluator successfully initialized");
+        } else {
+            log.error("RangerPrivilegesEvaluator initialization failed");
+        }
+
     }
 
     public void configureRangerPlugin(Settings settings) {
@@ -202,7 +210,6 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
             throw e;
         }
 
-        log.debug("Calling ranger plugin init");
         log.debug("Security manager");
         try{
             SecurityManager sm = System.getSecurityManager();
@@ -228,8 +235,6 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
                         pluginPath = urlFile.substring(0, idx);
                     }
                 }
-
-                log.debug("pluginpath: " + pluginPath); // debug
 
                 try {
                     Method method = URLClassLoader.class.getDeclaredMethod("addURL", new Class[]{URL.class});
@@ -263,7 +268,7 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
             );
         }
 
-        log.info("end doPrivileged");
+        log.debug("end doPrivileged");
         this.rangerUrl = RangerConfiguration.getInstance().get("ranger.plugin.elasticsearch.policy.rest.url");
         log.debug("Ranger uri : " + rangerUrl);
         RangerDefaultAuditHandler auditHandler = new RangerDefaultAuditHandler();
@@ -845,7 +850,7 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
                 types.addAll(t.v2());
             }
             //Add code for Ranger - Admin
-            allowAction = checkRangerAuthorization(user, caller, ACCESS_TYPE_ADMIN, indices, ACCESS_TYPE_ADMIN) ;
+            allowAction = checkRangerAuthorization(user, caller, ACCESS_TYPE_ADMIN, indices, ACCESS_TYPE_ADMIN);
             presponse.allowed = allowAction;
 
             if (!allowAction) {
@@ -1024,7 +1029,7 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
                 || (action.startsWith("indices:admin/get"))){
             //Add code for Ranger - Read
             allowAction = checkRangerAuthorization(user, caller, ACCESS_TYPE_READ, indices, ACCESS_TYPE_READ);
-            
+
         } else if (action.startsWith("indices:data/write")
                 || (action.startsWith("indices:data/"))) {
             //Add code for Ranger - Write/Delete
