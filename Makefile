@@ -23,6 +23,7 @@ clean:
 	rm -rf dist
 	rm -rf ranger-elasticsearch-service/target
 	rm -rf ranger-tagsync-elasticsearch/target
+	rm -rf ranger-privileges-evaluator/target
 	@echo "= = = = = = = = > END TARGET : [clean] < = = = = = = ="
 
 
@@ -31,6 +32,7 @@ build-source:
 	# installs commons locally, required to build subprojects
 	cd ranger-elasticsearch-service; mvn clean install -DskipTests; cd ..
 	cd ranger-tagsync-elasticsearch; mvn clean install -DskipTests; cd ..
+	cd ranger-privileges-evaluator; mvn clean install -DskipTests; cd ..
 	@echo "= = = = = = = = > END TARGET : [build-source] < = = = = = = ="
 
 dist:
