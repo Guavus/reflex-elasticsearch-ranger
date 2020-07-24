@@ -11,6 +11,8 @@ import org.apache.http.client.CredentialsProvider;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
 import org.apache.http.message.BasicHeader;
+import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.apache.ranger.plugin.client.BaseClient;
@@ -20,9 +22,13 @@ import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
 
+import javax.net.ssl.SSLContext;
 import java.io.IOException;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.*;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
@@ -40,6 +46,8 @@ public class ServiceElasticSearchClient {
     private String esSPN = null;
     private String username = null;
     private String password = null;
+    private String truststorePath = null;
+    private String truststorePassword = null;
 
 	private static final String errMessage = " You can still save the repository and start creating "
 			+ "policies, but you would not be able to use autocomplete for "
@@ -56,6 +64,8 @@ public class ServiceElasticSearchClient {
 		this.esSPN = configs.get("es.spn");
 		this.username = configs.get("username");
 		this.password = configs.get("password");
+		this.truststorePath = configs.get("truststore");
+		this.truststorePassword = configs.get("truststorepass");
         
 		String princName = configs.get("principal");
         String keytabPath = configs.get("keytab");
@@ -95,12 +105,16 @@ public class ServiceElasticSearchClient {
 
 	private List<String> getIndexList(List<String> ignoreIndexList) throws Exception {
 		List<String> ret = new ArrayList<String>();
-		RestClient lowLevelClient = getRestClient("https");
+		RestClient lowLevelClient = null;
         Response response = null;
         
 		try {
+			LOG.info("Trying https scheme");
+			lowLevelClient = getRestClient("https");
 			response = lowLevelClient.performRequest("GET", "/_cat/indices");
 		} catch (IOException ie) {
+			LOG.info("Ignore if not trying https");
+			ie.printStackTrace();
 		    LOG.info("Trying http scheme");
 		    try {
 		        lowLevelClient.close();
@@ -223,83 +237,117 @@ public class ServiceElasticSearchClient {
 				+ ", esUrl=" + esUrl + "]";
 	}
 
-	private RestClient getRestClient(String scheme) {
-	    RestClient lowLevelClient = null;
-	    if (this.spnegoClient != null) {
-	        try {
-	            String authHeader = spnegoClient.createAuthroizationHeaderForSPN(this.esSPN);
-	            Header[] headers = {
-                    new BasicHeader("Authorization", authHeader)
-	            };
-            
-	            lowLevelClient = RestClient.builder(
-                    new HttpHost(esUrl.split(":")[0], Integer.parseInt(esUrl.split(":")[1]), scheme))
-                    .setDefaultHeaders(headers)
-                    .setHttpClientConfigCallback(new RestClientBuilder.HttpClientConfigCallback() {
-                        @Override
-                        public HttpAsyncClientBuilder customizeHttpClient(HttpAsyncClientBuilder httpClientBuilder) {
-                            return httpClientBuilder;
-                        }
-                    })
-                    .build();
-	        } catch (Exception e) {
-	            if (LOG.isDebugEnabled()) {
-	                e.printStackTrace();
-	            }
-	            e.printStackTrace();
-	            LOG.error("Exception in Spnego authentication: " + e.getMessage());
-	            return null;
-	        }
-        } else {
-            final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-            credentialsProvider.setCredentials(AuthScope.ANY,
-                    new UsernamePasswordCredentials(username, password));
-        
-            lowLevelClient = RestClient.builder(
-                    new HttpHost(esUrl.split(":")[0], Integer.parseInt(esUrl.split(":")[1]), scheme))
-                    .setHttpClientConfigCallback(new RestClientBuilder.HttpClientConfigCallback() {
-                        @Override
-                        public HttpAsyncClientBuilder customizeHttpClient(HttpAsyncClientBuilder httpClientBuilder) {
-                            return httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
-                        }
-                    })
-                    .build();
-        }
-	    return lowLevelClient;
+	private RestClient getRestClient(String scheme) throws Exception {
+		RestClient lowLevelClient = null;
+		SSLContext sslContext = null;
+		boolean sslEnabled = scheme.equals("https");
+		if (sslEnabled
+				&& !Strings.isNullOrEmpty(truststorePassword)
+				&& !Strings.isNullOrEmpty(truststorePath)) {
+			Path trustStorePath = Paths.get(truststorePath);
+			String truststorePass = truststorePassword;
+			KeyStore truststore = KeyStore.getInstance("pkcs12");
+			InputStream is = Files.newInputStream(trustStorePath);
+			truststore.load(is, truststorePass.toCharArray());
+			SSLContextBuilder sslBuilder = SSLContexts.custom()
+					.loadTrustMaterial(truststore, null);
+			sslContext = sslBuilder.build();
+		}
+
+		if (this.spnegoClient != null) {
+			try {
+				String authHeader = spnegoClient.createAuthroizationHeaderForSPN(this.esSPN);
+				Header[] headers = {
+						new BasicHeader("Authorization", authHeader)
+				};
+
+				SSLContext finalSslContext = sslContext;
+				lowLevelClient = RestClient.builder(
+						new HttpHost(esUrl.split(":")[0], Integer.parseInt(esUrl.split(":")[1]), scheme))
+						.setDefaultHeaders(headers)
+						.setHttpClientConfigCallback(new RestClientBuilder.HttpClientConfigCallback() {
+							@Override
+							public HttpAsyncClientBuilder customizeHttpClient(HttpAsyncClientBuilder httpClientBuilder) {
+								if (sslEnabled) {
+									return httpClientBuilder.setSSLContext(finalSslContext);
+								} else {
+									return httpClientBuilder;
+								}
+							}
+						})
+						.build();
+			} catch (Throwable e) {
+				if (LOG.isDebugEnabled()) {
+					e.printStackTrace();
+				}
+				LOG.error("Exception in Spnego authentication: " + e.getMessage());
+				return null;
+			}
+		} else {
+			try {
+				final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+				credentialsProvider.setCredentials(AuthScope.ANY,
+						new UsernamePasswordCredentials(username, password));
+
+				SSLContext finalSslContext1 = sslContext;
+				lowLevelClient = RestClient.builder(
+						new HttpHost(esUrl.split(":")[0], Integer.parseInt(esUrl.split(":")[1]), scheme))
+						.setHttpClientConfigCallback(new RestClientBuilder.HttpClientConfigCallback() {
+							@Override
+							public HttpAsyncClientBuilder customizeHttpClient(HttpAsyncClientBuilder httpClientBuilder) {
+								if (sslEnabled) {
+									return httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider).setSSLContext(finalSslContext1);
+								} else {
+									return httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
+								}
+							}
+						})
+						.build();
+			} catch (Throwable e) {
+				if (LOG.isDebugEnabled()) {
+					e.printStackTrace();
+				}
+			}
+		}
+		return lowLevelClient;
 	}
-	
+
 	public static void main (String args[]) {
-	    Map<String, String> configs = new HashMap<String,String>();
+		Map<String, String> configs = new HashMap<String,String>();
 //	    configs.put("es.url", args[0]);
 //	    configs.put("username", args[1]);
 //	    configs.put("password", args[2]);
 		configs.put("es.url", args[0]);
-		if (args.length <= 3) {
+		if (args.length <= 5) {
 			configs.put("username", args[1]);
 			configs.put("password", args[2]);
+			configs.put("truststore",args[3]);
+			configs.put("truststorepass", args[4]);
 		} else {
 			configs.put("es.spn", args[1]);
 			configs.put("keytab", args[2]);
 			configs.put("principal", args[3]);
+			configs.put("truststore",args[4]);
+			configs.put("truststorepass", args[5]);
 		}
 
-	    ServiceElasticSearchClient serv = new ServiceElasticSearchClient("elasticsearch", configs);
-	    try {
-	        HashMap<String, Object> res = serv.connectionTest();
-	        Set<String> keys = res.keySet();
-	        Iterator<String> iter = keys.iterator();
-	        while (iter.hasNext()) {
-	            String key = iter.next();
-	            Object val = res.get(key);
-	            System.out.println("Key = " + key);
-	            if (val != null) {
-	                System.out.println("Val = " + val.toString());    
-	            }
-	        }
-	        System.out.println();
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	    }
+		ServiceElasticSearchClient serv = new ServiceElasticSearchClient("elasticsearch", configs);
+		try {
+			HashMap<String, Object> res = serv.connectionTest();
+			Set<String> keys = res.keySet();
+			Iterator<String> iter = keys.iterator();
+			while (iter.hasNext()) {
+				String key = iter.next();
+				Object val = res.get(key);
+				System.out.println("Key = " + key);
+				if (val != null) {
+					System.out.println("Val = " + val.toString());
+				}
+			}
+			System.out.println();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	//java -cp  ranger-elasticsearch-service-1.0-SNAPSHOT-jar-with-dependencies.jar com.gauvus.ranger.services.client.ServiceElasticSearchClient rafsoak001-mst-01.cloud.in.guavus.com:9200 HTTP/rafsoak001-mst-01.cloud.in.guavus.com /etc/security/keytabs/hdfs.headless.keytab hdfs-rafd002@GVS.GGN

@@ -16,6 +16,13 @@ public class ServiceElasticSearchConnectionMgr {
 	                + serviceName + ". URL information not provided.");
 	    }
 
+	    if ((!Strings.isNullOrEmpty(configs.get("truststore"))
+				&& Strings.isNullOrEmpty(configs.get("truststorepass")))
+				|| (Strings.isNullOrEmpty(configs.get("truststore"))
+				&& !Strings.isNullOrEmpty(configs.get("truststorepass")))) {
+	    	throw new Exception("Please provide values for both truststore password and truststore path or none");
+		}
+
 	    if (
 	            ((Strings.isNullOrEmpty(configs.get("es.spn"))) ||
 	             (Strings.isNullOrEmpty(configs.get("principal"))) ||
