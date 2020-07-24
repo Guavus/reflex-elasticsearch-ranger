@@ -26,6 +26,7 @@ fi
  cp -r ./ranger-elasticsearch-service/conf ${TEMP_PACKAGE_DIR}/${RPM_BASE_PATH}
  cp -r ./ranger-elasticsearch-service/target/*.jar ${TEMP_PACKAGE_DIR}/${RPM_BASE_PATH}/lib
  cp -r ./ranger-tagsync-elasticsearch/target/*.jar ${TEMP_PACKAGE_DIR}/${RPM_BASE_PATH}/lib
+ cp -r ./ranger-privileges-evaluator/target/*.jar ${TEMP_PACKAGE_DIR}/${RPM_BASE_PATH}/lib
  fpm -f -s dir -t rpm --rpm-os linux -v ${VERSION} --iteration ${REL} --chdir $TEMP_PACKAGE_DIR -p $DIST_DIR_PLUGIN -n $RPM_NAME .
  echo "###### END: RPM CREATION FOR RANGER ES PLUGIN ######"
 
