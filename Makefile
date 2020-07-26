@@ -30,9 +30,9 @@ clean:
 build-source:
 	@echo "= = = = = = = > START TARGET : [build-source] < = = = = = = ="
 	# installs commons locally, required to build subprojects
-	cd ranger-elasticsearch-service; mvn clean install -DskipTests; cd ..
-	cd ranger-tagsync-elasticsearch; mvn clean install -DskipTests; cd ..
-	cd ranger-privileges-evaluator; mvn clean install -DskipTests; cd ..
+	cd ranger-elasticsearch-service; mvn clean install -U -DskipTests; cd ..
+	cd ranger-tagsync-elasticsearch; mvn clean install -U -DskipTests; cd ..
+	cd ranger-privileges-evaluator; mvn clean install -U -DskipTests; cd ..
 	@echo "= = = = = = = = > END TARGET : [build-source] < = = = = = = ="
 
 dist:
