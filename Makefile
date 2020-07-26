@@ -36,8 +36,8 @@ build-source:
 	@echo "= = = = = = = = > END TARGET : [build-source] < = = = = = = ="
 
 dist:
-	mkdir -p dist/rangeres
-	mkdir -p dist/installer
+	mkdir -p dist/ranger-es-service
+	mkdir -p dist/ranger-privilege-evaluator
 
 
 .PHONY: all gather-dist-source-jobs clean build-source dist
