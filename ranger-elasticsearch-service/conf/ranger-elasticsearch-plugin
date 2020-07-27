@@ -65,7 +65,7 @@
         },
     {
         "itemId": 2,
-        "name": "truststore",
+        "name": "truststorepath",
         "mandatory": false,
         "label": "Truststore Path",
         "type": "string"
@@ -108,10 +108,10 @@
         },
 	{
         "itemId":8,
-        "name": "password",
+        "name": "userpass",
         "type": "password",
         "mandatory": false,
-        "label": "Password"
+        "label": "User Password"
         }
 ],
   "enums": [ ],

@@ -58,13 +58,13 @@ public class ServiceElasticSearchClient {
 	private static final String KRB5_DEBUG = "false";
 	private static final String KRB5_CONF = "/etc/krb5.conf";
 
-	public ServiceElasticSearchClient(String serviceName, Map<String, String> configs) {
+	public ServiceElasticSearchClient(String serviceName, Map<String, String> configs) throws Exception {
 		this.serviceName = serviceName;
 		this.esUrl = configs.get("es.url");
 		this.esSPN = configs.get("es.spn");
 		this.username = configs.get("username");
-		this.password = configs.get("password");
-		this.truststorePath = configs.get("truststore");
+		this.password = configs.get("userpass");
+		this.truststorePath = configs.get("truststorepath");
 		this.truststorePassword = configs.get("truststorepass");
         
 		String princName = configs.get("principal");
@@ -72,14 +72,19 @@ public class ServiceElasticSearchClient {
         
 		if ((!Strings.isNullOrEmpty(this.esSPN)) && (!Strings.isNullOrEmpty(princName)) 
 		        && (!Strings.isNullOrEmpty(keytabPath))) {
-		    this.spnegoClient = SpnegoClient.loginWithKeyTab(princName, keytabPath);
-		    AccessController.doPrivileged(new PrivilegedAction() {
-		        public Object run() {
-		            System.setProperty("sun.security.krb5.debug", KRB5_DEBUG);
-		            System.setProperty("java.security.krb5.conf", KRB5_CONF);
-		            return null;
-		        }
-		    });
+			try {
+				this.spnegoClient = SpnegoClient.loginWithKeyTab(princName, keytabPath);
+				AccessController.doPrivileged(new PrivilegedAction() {
+					public Object run() {
+						System.setProperty("sun.security.krb5.debug", KRB5_DEBUG);
+						System.setProperty("java.security.krb5.conf", KRB5_CONF);
+						return null;
+					}
+				});
+			} catch (Throwable e) {
+				e.printStackTrace();
+				throw new Exception("Could not login with the provided keytab");
+			}
 		}
 	}
 
@@ -112,7 +117,7 @@ public class ServiceElasticSearchClient {
 			LOG.info("Trying https scheme");
 			lowLevelClient = getRestClient("https");
 			response = lowLevelClient.performRequest("GET", "/_cat/indices");
-		} catch (IOException ie) {
+		} catch (Throwable ie) {
 			LOG.info("Ignore if not trying https");
 			ie.printStackTrace();
 		    LOG.info("Trying http scheme");
@@ -123,7 +128,9 @@ public class ServiceElasticSearchClient {
 			try {
 			    lowLevelClient = getRestClient("http");
 			    response = lowLevelClient.performRequest("GET", "/_cat/indices");
-			} catch (IOException ioe) {ioe.printStackTrace();}            
+			} catch (Throwable ioe) {
+				ioe.printStackTrace();
+			}
 		}
 		finally {
 		    try {
@@ -312,7 +319,7 @@ public class ServiceElasticSearchClient {
 		return lowLevelClient;
 	}
 
-	public static void main (String args[]) {
+	public static void main (String args[]) throws Exception {
 		Map<String, String> configs = new HashMap<String,String>();
 //	    configs.put("es.url", args[0]);
 //	    configs.put("username", args[1]);
@@ -320,14 +327,14 @@ public class ServiceElasticSearchClient {
 		configs.put("es.url", args[0]);
 		if (args.length <= 5) {
 			configs.put("username", args[1]);
-			configs.put("password", args[2]);
-			configs.put("truststore",args[3]);
+			configs.put("userpass", args[2]);
+			configs.put("truststorepath",args[3]);
 			configs.put("truststorepass", args[4]);
 		} else {
 			configs.put("es.spn", args[1]);
 			configs.put("keytab", args[2]);
 			configs.put("principal", args[3]);
-			configs.put("truststore",args[4]);
+			configs.put("truststorepath",args[4]);
 			configs.put("truststorepass", args[5]);
 		}
 
@@ -353,4 +360,5 @@ public class ServiceElasticSearchClient {
 	//java -cp  ranger-elasticsearch-service-1.0-SNAPSHOT-jar-with-dependencies.jar com.gauvus.ranger.services.client.ServiceElasticSearchClient rafsoak001-mst-01.cloud.in.guavus.com:9200 HTTP/rafsoak001-mst-01.cloud.in.guavus.com /etc/security/keytabs/hdfs.headless.keytab hdfs-rafd002@GVS.GGN
 
 	//cp /tmp/ranger-elasticsearch-service-1.0-SNAPSHOT-jar-with-dependencies.jar /usr/hdp/current/ranger-admin/ews/webapp/WEB-INF/classes/ranger-plugins/elasticsearch/ranger-elasticsearch-service-1.0-SNAPSHOT-jar-with-dependencies.jar
+	// java -Djava.security.debug=failures -Droot.log.level=TRACE -cp /tmp/ranger-elasticsearch-service-1.0-SNAPSHOT-jar-with-dependencies.jar com.gauvus.ranger.services.client.ServiceElasticSearchClient node-0.example.com:9200 HTTP/rafd002-slv-01.cloud.in.guavus.com /etc/security/keytabs/hdfs.headless.keytab hdfs-rafd002@GVS.GGN /etc/security/serverKeys/ranger/truststore.p12 admin123
 }
