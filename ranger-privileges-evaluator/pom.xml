@@ -11,6 +11,7 @@
 
   <properties>
     <opendistro.version>0.10.1.2</opendistro.version>
+    <raf.version>4.2.0-1</raf.version>
     <ranger.version>1.2.0</ranger.version>
     <elasticsearch.version>6.8.3</elasticsearch.version>
   </properties>
@@ -20,7 +21,7 @@
     <dependency>
       <groupId>com.amazon.opendistroforelasticsearch</groupId>
       <artifactId>opendistro_security</artifactId>
-      <version>${project.version}</version>
+      <version>${raf.version}-${opendistro.version}-${elasticsearch.version}</version>
       <scope>provided</scope>
     </dependency>
 
