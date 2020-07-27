@@ -11,7 +11,7 @@ all: \
 		
 gather-dist-rpms:
 	VER=`cat .VERSION`
-	rm -rf .package;  ./build_rpm.sh $(REL_VERSION) 0;  
+	rm -rf .package;  ./build_rpm.sh $(REL_VERSION) ${RELEASE};  
 
 gather-dist-source-jobs: \
 	build-source \
