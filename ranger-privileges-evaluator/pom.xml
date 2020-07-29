@@ -20,7 +20,7 @@
     <dependency>
       <groupId>com.amazon.opendistroforelasticsearch</groupId>
       <artifactId>opendistro_security</artifactId>
-      <version>${opendistro.version}</version>
+      <version>${elasticsearch.version}-${opendistro.version}</version>
       <scope>provided</scope>
     </dependency>
 
