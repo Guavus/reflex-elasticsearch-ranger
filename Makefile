@@ -10,7 +10,7 @@ all: \
 	gather-dist-source-jobs 
 		
 gather-dist-rpms:
-	rm -rf .package;  ./build_rpm.sh $(RANGER_ES_TAG_SYNC_RPM_VERSION) ${RANGER_PRIVILEGE_EVALUATOR_RPM_VERSION} ${RELEASE};  
+	rm -rf .package; ./build_rpm.sh $(RANGER_ES_TAG_SYNC_RPM_VERSION) ${RANGER_PRIVILEGE_EVALUATOR_RPM_VERSION} ${RELEASE};  
 
 gather-dist-source-jobs: \
 	build-source \
