@@ -2,16 +2,15 @@
 
 
 SHELL := /bin/bash
-REL_VERSION := $(shell cat .VERSION)
-
+RANGER_ES_TAG_SYNC_RPM_VERSION := $(shell cat image-config/RANGER_ES_TAG_SYNC_RPM_VERSION)
+RANGER_PRIVILEGE_EVALUATOR_RPM_VERSION := $(shell cat image-config/RANGER_PRIVILEGE_EVALUATOR_RPM_VERSION)
 
 all: \
 	clean \
 	gather-dist-source-jobs 
 		
 gather-dist-rpms:
-	VER=`cat .VERSION`
-	rm -rf .package;  ./build_rpm.sh $(REL_VERSION) ${RELEASE};  
+	rm -rf .package;  ./build_rpm.sh $(RANGER_ES_TAG_SYNC_RPM_VERSION) ${RANGER_PRIVILEGE_EVALUATOR_RPM_VERSION} ${RELEASE};  
 
 gather-dist-source-jobs: \
 	build-source \

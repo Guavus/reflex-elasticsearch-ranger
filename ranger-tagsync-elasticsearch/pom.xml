@@ -4,7 +4,7 @@
 	<groupId>com.guavus.ranger</groupId>
 	<artifactId>ranger-tagsync-elasticsearch</artifactId>
 	<packaging>jar</packaging>
-	<version>6.8.3-0.10.1.2</version>
+	<version>1.2.0</version>
 	<name>ranger-elasticsearch-service</name>
 	<url>http://maven.apache.org</url>
 	<properties>
