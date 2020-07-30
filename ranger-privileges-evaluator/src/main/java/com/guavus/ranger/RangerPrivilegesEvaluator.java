@@ -79,6 +79,7 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
     private static final Set<String> NULL_SET = Sets.newHashSet((String)null);
     private final static IndicesOptions DEFAULT_INDICES_OPTIONS = IndicesOptions.lenientExpandOpen();
     private static final Set<String> NO_INDICES_SET = Sets.newHashSet("\\",";",",","/","|");
+    private static final String CONFIG_FILES_PATH_PREFIX = "/etc/elasticsearch/";
 
     // access types
     public static final String ACCESS_TYPE_READ = "read";
@@ -113,7 +114,6 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
 
     private static RangerBasePlugin rangerPlugin = null;
     private String rangerUrl = null;
-    private UserGroupMappingCache usrGrpCache = null;
     private boolean initUGI = false;
     private boolean isInitialised = true;
 
@@ -175,9 +175,6 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
             log.error(e.getCause());
             e.printStackTrace();
         }
-
-        usrGrpCache = new UserGroupMappingCache();
-        usrGrpCache.init();
 
         if (isInitialised) {
             log.info("RangerPrivilegesEvaluator successfully initialized");
@@ -305,8 +302,8 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
         }
 
         String keytabPrincipal = settings.get(ConfigConstants.OPENDISTRO_SECURITY_KERBEROS_UGI_KEYTAB_PRINCIPAL);
-        String keytabPath = "/etc/elasticsearch/".concat(settings.get(ConfigConstants.OPENDISTRO_SECURITY_KERBEROS_UGI_KEYTAB_FILEPATH));
-        String krbConf = "/etc/elasticsearch/".concat(settings.get(ConfigConstants.OPENDISTRO_SECURITY_KERBEROS_KRB5_FILEPATH));
+        String keytabPath = CONFIG_FILES_PATH_PREFIX.concat(settings.get(ConfigConstants.OPENDISTRO_SECURITY_KERBEROS_UGI_KEYTAB_FILEPATH));
+        String krbConf = CONFIG_FILES_PATH_PREFIX.concat(settings.get(ConfigConstants.OPENDISTRO_SECURITY_KERBEROS_KRB5_FILEPATH));
         String hadoopHomeDir = settings.get(ConfigConstants.OPENDISTRO_HADOOP_HOME_DIR);
         String coreSiteXmlPath = settings.get(ConfigConstants.OPENDISTRO_HADOOP_CORE_SITE_XML);
         String hdfsSiteXmlPath = settings.get(ConfigConstants.OPENDISTRO_HADOOP_HDFS_SITE_XML);
@@ -349,21 +346,18 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
             initUGI = AccessController.doPrivileged(new PrivilegedAction<Boolean>() {
                 public Boolean run() {
                     try {
-                        log.info("loginUserFromKeytab");
-                        //UserGroupInformation.loginUserFromKeytab(svcName, keytabPath);
+                        log.debug("loginUserFromKeytab");
                         org.apache.hadoop.conf.Configuration conf = new  org.apache.hadoop.conf.Configuration();
                         conf.addResource(new Path(coreSiteXmlPath));
                         conf.addResource(new Path(hdfsSiteXmlPath));
-                        log.debug(conf);
+                        log.info(conf);
                         UserGroupInformation.setConfiguration(conf);
                         UserGroupInformation ugi = UserGroupInformation.loginUserFromKeytabAndReturnUGI(keytabPrincipal, keytabPath);
                         MiscUtil.setUGILoginUser(ugi, null);
 
-                        log.info("getLoginUser");
                         log.debug("isSecurityEnabled : " + UserGroupInformation.isSecurityEnabled());
-                        log.info("getLoginUser done");
                     } catch (Throwable t) {
-                        log.error("Caught exception in UserGroupInformation. Please investigate: "
+                        log.error("Caught exception in getting UserGroupInformation. Please investigate: "
                                 + t
                                 + Arrays.asList(t.getStackTrace())
                                 .stream()
@@ -378,7 +372,7 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
                 }
             });
 
-        log.info("doPrivileged");
+        log.debug("doPrivileged get UGI done");
 
         return initUGI;
     }
@@ -390,50 +384,13 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
         RangerAccessRequestImpl rangerRequest = new RangerAccessRequestImpl();
         rangerRequest.setUser(user.getName());
 
-        Set<String> userGroups = null;
-        Set<String> userRoles = user.getRoles();
-        if (userRoles != null && !(userRoles.isEmpty())) {
-            userGroups = userRoles;
-        } else {
-            try {
-                SecurityManager sm = System.getSecurityManager();
-                if (sm != null) {
-                    sm.checkPermission(new SpecialPermission());
-                }
-
-                userGroups = AccessController.doPrivileged(new PrivilegedAction<Set<String>>() {
-                    public Set<String> run() {
-                        try {
-                            return usrGrpCache.getUserGroups(user.getName());
-                        } catch (Exception e) {
-                            if (log.isDebugEnabled()) {
-                                e.printStackTrace();
-                            }
-                            log.warn("Exception in retrieving user group mapping : " + e.getMessage());
-                        }
-                        return null;
-                    }
-                });
-            } catch (Exception e) {
-                if (log.isDebugEnabled()) {
-                    e.printStackTrace();
-                }
-                log.warn("Exception in retrieving user group mapping : " + e.getMessage() );
-            }
-        }
-
-        if (userGroups != null) {
-            rangerRequest.setUserGroups(userGroups);
-        } else {
-            log.warn("No groups found for user : " + user.getName());
-        }
         rangerRequest.setClientIPAddress(ipAddress);
         rangerRequest.setAccessTime(eventTime);
         RangerAccessResourceImpl rangerResource = new RangerAccessResourceImpl();
         rangerRequest.setResource(rangerResource);
         rangerRequest.setAccessType(accessType);
         rangerRequest.setAction(accessType);
-        //rangerRequest.setClusterName(clusterName);
+        rangerRequest.setUserGroups(user.getRoles());
 
         for (Iterator<String> it = indices.iterator(); it.hasNext();) {
             String index = it.next();
@@ -773,6 +730,9 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
             throw new ElasticsearchSecurityException("Open Distro is not initialized.");
         }
 
+        log.info("user roles : " + user.getRoles());
+        log.info("user : " + user);
+
         if(action.startsWith("internal:indices/admin/upgrade")) {
             action = "indices:admin/upgrade";
         }
@@ -786,7 +746,6 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
             log.debug("action: "+action+" ("+request.getClass().getSimpleName()+")");
         }
 
-        usrGrpCache.setSettings(getConfigSettings());
         if (rangerPlugin == null) {
             log.error("Ranger Plugin not initialized");
             presponse.allowed = false;
@@ -818,15 +777,15 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
 
             if(concreteIndex != null && (pmr.indices() == null || pmr.indices().length == 0)) {
                 String indexName = concreteIndex.getName();
-                //Add code for Ranger - Admin
+
                 indices.clear();
                 indices.add(indexName);
                 allowAction = checkRangerAuthorization(user, caller, ACCESS_TYPE_WRITE, indices, ACCESS_TYPE_WRITE);
                 presponse.allowed = allowAction;
 
                 if (!allowAction) {
-                    presponse.missingPrivileges.add(action);
-                    log.info("Permission denied for User: " + user.getName() + " Action: " + action + " , indices: " + String.join(",", indices));
+                    presponse.missingPrivileges.add(ACCESS_TYPE_WRITE);
+                    log.info("Permission denied for User: " + user.getName() + " Action: " + action + ", required permission : " + ACCESS_TYPE_WRITE + " , indices: " + String.join(",", indices));
                 }
 
                 return presponse;
@@ -854,8 +813,8 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
             presponse.allowed = allowAction;
 
             if (!allowAction) {
-                presponse.missingPrivileges.add(action);
-                log.info("Permission denied for User: " + user.getName() + " Action: " + action + " , indices: " + String.join(",", indices));
+                presponse.missingPrivileges.add(ACCESS_TYPE_ADMIN);
+                log.info("Permission denied for User: " + user.getName() + " Action: " + action + ", required permission : " + ACCESS_TYPE_ADMIN + " , indices: " + String.join(",", indices));
             }
 
             return presponse;
@@ -874,8 +833,8 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
                 presponse.allowed = allowAction;
 
                 if (!allowAction) {
-                    presponse.missingPrivileges.add(action);
-                    log.info("Permission denied for User: " + user.getName() + " Action: " + action + " , indices: " + String.join(",", indices));
+                    presponse.missingPrivileges.add(ACCESS_TYPE_READ);
+                    log.info("Permission denied for User: " + user.getName() + " Action: " + action + ", required permission : " + ACCESS_TYPE_READ + " , indices: " + String.join(",", indices));
                 }
 
                 return presponse;
@@ -899,8 +858,8 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
                 presponse.allowed = allowAction;
 
                 if (!allowAction) {
-                    presponse.missingPrivileges.add(action);
-                    log.info("Permission denied for User: " + user.getName() + " Action: " + action + " , indices: " + String.join(",", indices));
+                    presponse.missingPrivileges.add(ACCESS_TYPE_WRITE);
+                    log.info("Permission denied for User: " + user.getName() + " Action: " + action + ", required permission : " + ACCESS_TYPE_WRITE + " , indices: " + String.join(",", indices));
                 }
 
                 return presponse;
@@ -918,8 +877,8 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
                 presponse.allowed = allowAction;
 
                 if (!allowAction) {
-                    presponse.missingPrivileges.add(action);
-                    log.info("Permission denied for User: " + user.getName() + " Action: " + action + " , indices: " + String.join(",", indices));
+                    presponse.missingPrivileges.add(ACCESS_TYPE_READ);
+                    log.info("Permission denied for User: " + user.getName() + " Action: " + action + ", required permission : " + ACCESS_TYPE_READ + " , indices: " + String.join(",", indices));
                 }
 
                 return presponse;
@@ -937,8 +896,8 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
                 presponse.allowed = allowAction;
 
                 if (!allowAction) {
-                    presponse.missingPrivileges.add(action);
-                    log.info("Permission denied for User: " + user.getName() + " Action: " + action + " , indices: " + String.join(",", indices));
+                    presponse.missingPrivileges.add(ACCESS_TYPE_READ);
+                    log.info("Permission denied for User: " + user.getName() + " Action: " + action + ", required permission : " + ACCESS_TYPE_READ + " , indices: " + String.join(",", indices));
                 }
 
                 return presponse;
@@ -956,8 +915,8 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
                 presponse.allowed = allowAction;
 
                 if (!allowAction) {
-                    presponse.missingPrivileges.add(action);
-                    log.info("Permission denied for User: " + user.getName() + " Action: " + action + " , indices: " + String.join(",", indices));
+                    presponse.missingPrivileges.add(ACCESS_TYPE_READ);
+                    log.info("Permission denied for User: " + user.getName() + " Action: " + action + ", required permission : " + ACCESS_TYPE_READ + " , indices: " + String.join(",", indices));
                 }
 
                 return presponse;
@@ -975,8 +934,8 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
                     presponse.allowed = allowAction;
 
                     if (!allowAction) {
-                        presponse.missingPrivileges.add(action);
-                        log.info("Permission denied for User: " + user.getName() + " Action: " + action + " , indices: " + String.join(",", indices));
+                        presponse.missingPrivileges.add(ACCESS_TYPE_WRITE);
+                        log.info("Permission denied for User: " + user.getName() + " Action: " + action + ", required permission : " + ACCESS_TYPE_WRITE + " , indices: " + String.join(",", indices));
                     }
 
                     return presponse;
@@ -986,13 +945,12 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
                 indices.clear();
                 indices.addAll(t.v1());
                 types.addAll(t.v2());
-                //Add code for Ranger - Admin
                 allowAction = checkRangerAuthorization(user, caller, ACCESS_TYPE_READ, indices, ACCESS_TYPE_READ);
                 presponse.allowed = allowAction;
 
                 if (!allowAction) {
-                    presponse.missingPrivileges.add(action);
-                    log.info("Permission denied for User: " + user.getName() + " Action: " + action + " , indices: " + String.join(",", indices));
+                    presponse.missingPrivileges.add(ACCESS_TYPE_READ);
+                    log.info("Permission denied for User: " + user.getName() + " Action: " + action + ", required permission : " + ACCESS_TYPE_READ + " , indices: " + String.join(",", indices));
                 }
 
                 return presponse;
@@ -1010,13 +968,24 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
         log.debug("Action requested: " + action + " , indices: " + String.join(",", indices));
         if (action.startsWith("cluster:monitor/")) {
             allowAction = checkRangerAuthorization(user, caller, ACCESS_TYPE_MONITOR_CLUSTER, indices, ACCESS_TYPE_MONITOR_CLUSTER);
+            if (!allowAction) {
+                presponse.missingPrivileges.add(ACCESS_TYPE_MONITOR_CLUSTER);
+                log.info("Permission denied for User: " + user.getName() + " Action: " + action + ", required permission : " + ACCESS_TYPE_MONITOR_CLUSTER + " , indices: " + String.join(",", indices));
+            }
         }
         else if (action.startsWith("indices:monitor/")) {
             allowAction = checkRangerAuthorization(user, caller, ACCESS_TYPE_MONITOR_INDICES, indices, ACCESS_TYPE_MONITOR_INDICES);
+            if (!allowAction) {
+                presponse.missingPrivileges.add(ACCESS_TYPE_MONITOR_INDICES);
+                log.info("Permission denied for User: " + user.getName() + " Action: " + action + ", required permission : " + ACCESS_TYPE_MONITOR_INDICES + " , indices: " + String.join(",", indices));
+            }
         } else if (action.startsWith("indices:admin/create")
                 || (action.startsWith("indices:admin/mapping/put"))) {
-
             allowAction = checkRangerAuthorization(user, caller, ACCESS_TYPE_WRITE, indices, ACCESS_TYPE_WRITE);
+            if (!allowAction) {
+                presponse.missingPrivileges.add(ACCESS_TYPE_WRITE);
+                log.info("Permission denied for User: " + user.getName() + " Action: " + action + ", required permission : " + ACCESS_TYPE_WRITE + " , indices: " + String.join(",", indices));
+            }
         } else if ((action.startsWith("indices:data/read"))
                 || (action.startsWith("indices:admin/template/get"))
                 || (action.startsWith("indices:admin/mapping/get"))
@@ -1029,27 +998,36 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
                 || (action.startsWith("indices:admin/get"))){
             //Add code for Ranger - Read
             allowAction = checkRangerAuthorization(user, caller, ACCESS_TYPE_READ, indices, ACCESS_TYPE_READ);
+            if (!allowAction) {
+                presponse.missingPrivileges.add(ACCESS_TYPE_READ);
+                log.info("Permission denied for User: " + user.getName() + " Action: " + action + ", required permission : " + ACCESS_TYPE_READ + " , indices: " + String.join(",", indices));
+            }
 
         } else if (action.startsWith("indices:data/write")
                 || (action.startsWith("indices:data/"))) {
-            //Add code for Ranger - Write/Delete
             allowAction = checkRangerAuthorization(user, caller, ACCESS_TYPE_WRITE, indices, ACCESS_TYPE_WRITE);
+            if (!allowAction) {
+                presponse.missingPrivileges.add(ACCESS_TYPE_WRITE);
+                log.info("Permission denied for User: " + user.getName() + " Action: " + action + ", required permission : " + ACCESS_TYPE_WRITE + " , indices: " + String.join(",", indices));
+            }
         } else if (action.startsWith("indices:")) {
             log.debug("All remaining unknown actions with indices:");
-
-            //Add code for Ranger - Admin
             allowAction = checkRangerAuthorization(user, caller, ACCESS_TYPE_ADMIN, indices, ACCESS_TYPE_ADMIN);
+            if (!allowAction) {
+                presponse.missingPrivileges.add(ACCESS_TYPE_ADMIN);
+                log.info("Permission denied for User: " + user.getName() + " Action: " + action + ", required permission : " + ACCESS_TYPE_ADMIN + " , indices: " + String.join(",", indices));
+            }
         } else {
             log.debug("All remaining unknown actions");
             indices.clear();
             indices.add("_cluster");
             allowAction = checkRangerAuthorization(user, caller, ACCESS_TYPE_ADMIN, indices, ACCESS_TYPE_ADMIN);
+            if (!allowAction) {
+                presponse.missingPrivileges.add(ACCESS_TYPE_ADMIN);
+                log.info("Permission denied for User: " + user.getName() + " Action: " + action + ", required permission : " + ACCESS_TYPE_ADMIN + " , indices: " + String.join(",", indices));
+            }
         }
 
-        if (!allowAction) {
-            presponse.missingPrivileges.add(action);
-            log.info("Permission denied for User: " + user.getName() + " Action: " + action + " , indices: " + String.join(",", indices));
-        }
         presponse.allowed = allowAction;
         return presponse;
 
