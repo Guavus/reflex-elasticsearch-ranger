@@ -4,7 +4,7 @@
   <groupId>com.guavus.ranger</groupId>
   <artifactId>ranger-privileges-evaluator</artifactId>
   <packaging>jar</packaging>
-  <version>${opendistro.version}-${ranger.version}-${elasticsearch.version}</version>
+  <version>0.10.1.2</version>
 
   <name>ranger-privileges-evaluator</name>
   <url>http://maven.apache.org</url>
@@ -115,7 +115,7 @@
     <dependency>
       <groupId>com.amazon.opendistroforelasticsearch</groupId>
       <artifactId>opendistro_security</artifactId>
-      <version>${opendistro.version}-${ranger.version}-${elasticsearch.version}</version>
+      <version>${elasticsearch.version}-${opendistro.version}</version>
       <!--exclusions>
         <exclusion>
           <groupId>org.apache.kerby</groupId>
