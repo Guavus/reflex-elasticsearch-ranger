@@ -46,13 +46,8 @@
   	},
   	{
     "itemId":4,
-    "name": "monitor_indices",
-    "label": "monitor_indices"
-    },
-    {
-    "itemId":5,
-    "name": "monitor_cluster",
-    "label": "monitor_cluster"
+    "name": "monitor",
+    "label": "monitor"
     }
 ],
   "configs":[
