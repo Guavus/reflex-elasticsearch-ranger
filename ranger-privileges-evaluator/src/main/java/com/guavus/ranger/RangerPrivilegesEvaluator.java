@@ -82,10 +82,12 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
     private static final String CONFIG_FILES_PATH_PREFIX = "/etc/elasticsearch/";
 
     // access types
-    public static final String ACCESS_TYPE_READ = "read";
-    public static final String ACCESS_TYPE_WRITE = "write";
-    public static final String ACCESS_TYPE_ADMIN = "admin";
-    public static final String ACCESS_TYPE_MONITOR = "monitor";
+    private static final String ACCESS_TYPE_READ = "read";
+    private static final String ACCESS_TYPE_WRITE = "write";
+    private static final String ACCESS_TYPE_ADMIN = "admin";
+    private static final String ACCESS_TYPE_MONITOR = "monitor";
+
+    private static final String CLUSTER_NAME = "cluster.name";
 
     protected final Logger actionTrace = LogManager.getLogger("opendistro_security_action_trace");
     private final ClusterService clusterService;
@@ -115,6 +117,7 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
     private String rangerUrl = null;
     private boolean initUGI = false;
     private boolean isInitialised = true;
+    private String clusterName = null;
 
     @Inject
     public RangerPrivilegesEvaluator(final ClusterService clusterService, final ThreadPool threadPool,
@@ -153,6 +156,8 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
             isInitialised = false;
             throw new ElasticsearchSecurityException("Open Distro Ranger plugin enabled but appId config not valid");
         }
+
+        clusterName = settings.get(CLUSTER_NAME);
 
         log.info("RANGER_ES_PLUGIN_APP_ID: " + RANGER_ES_PLUGIN_APP_ID);
 
@@ -389,6 +394,9 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
         rangerRequest.setAccessTime(eventTime);
         RangerAccessResourceImpl rangerResource = new RangerAccessResourceImpl();
         rangerRequest.setResource(rangerResource);
+        if (!Strings.isNullOrEmpty(clusterName)) {
+            rangerRequest.setClusterName(clusterName);
+        }
         rangerRequest.setAccessType(accessType);
         rangerRequest.setAction(accessType);
         rangerRequest.setUserGroups(user.getRoles());
