@@ -86,7 +86,6 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
     public static final String ACCESS_TYPE_WRITE = "write";
     public static final String ACCESS_TYPE_ADMIN = "admin";
     public static final String ACCESS_TYPE_MONITOR = "monitor";
-    //public static final String ACCESS_TYPE_MONITOR_CLUSTER = "monitor";
 
     protected final Logger actionTrace = LogManager.getLogger("opendistro_security_action_trace");
     private final ClusterService clusterService;
