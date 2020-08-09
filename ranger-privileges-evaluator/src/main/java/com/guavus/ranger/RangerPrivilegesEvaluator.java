@@ -31,6 +31,7 @@ import org.elasticsearch.action.admin.indices.alias.IndicesAliasesRequest;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingRequest;
 import org.elasticsearch.action.bulk.BulkAction;
 import org.elasticsearch.action.bulk.BulkRequest;
+import org.elasticsearch.action.bulk.BulkShardRequest;
 import org.elasticsearch.action.fieldcaps.FieldCapabilitiesRequest;
 import org.elasticsearch.action.get.MultiGetAction;
 import org.elasticsearch.action.get.MultiGetRequest;
@@ -715,7 +716,7 @@ public class RangerPrivilegesEvaluator extends AbstractPrivilegesEvaluator {
     @Override
     public PrivilegesEvaluatorResponse evaluate(User user, String action, ActionRequest request, Task task) {
         if (!isInitialized()) {
-            throw new ElasticsearchSecurityException("Open Distro is not initialized.");
+            throw new ElasticsearchSecurityException("RangerPrivilegesEvaluator is not initialized.");
         }
 
         log.info("user roles : " + user.getRoles());
@@ -755,6 +756,23 @@ public class RangerPrivilegesEvaluator extends AbstractPrivilegesEvaluator {
 
         final ClusterState clusterState = clusterService.state();
         final MetaData metaData = clusterState.metaData();
+
+        if (request instanceof BulkShardRequest) {
+            log.debug("BulkShardRequest");
+            final Tuple<Set<String>, Set<String>> t = resolveIndicesRequest(user, action, (IndicesRequest) request, metaData);
+            indices.addAll(t.v1());
+            types.addAll(t.v2());
+            allowAction = checkRangerAuthorization(user, caller, ACCESS_TYPE_WRITE, indices, ACCESS_TYPE_WRITE);
+            presponse.allowed = allowAction;
+
+            if (!allowAction) {
+                presponse.missingPrivileges.add(String.join(",", indices) + " : " + ACCESS_TYPE_WRITE);
+                log.info("Permission denied for User: " + user.getName() + "Action: " + action + ", required permission : " + ACCESS_TYPE_WRITE + " , indices: " + String.join(",", indices));
+            }
+
+            return presponse;
+
+        }
 
         if(request instanceof PutMappingRequest) {
 
@@ -810,9 +828,8 @@ public class RangerPrivilegesEvaluator extends AbstractPrivilegesEvaluator {
         } else if (request instanceof CompositeIndicesRequest) {
             log.debug("CompositeIndicesRequest");
 
-            if(request instanceof IndicesRequest) {
+            if(request instanceof IndicesRequest && !action.startsWith("indices:data/") && !action.startsWith("indices:admin/")) { // write to index was getting mapped here, handled separately
                 log.debug("IndicesRequest");
-
 
                 final Tuple<Set<String>, Set<String>> t = resolveIndicesRequest(user, action, (IndicesRequest) request, metaData);
                 indices.addAll(t.v1());
@@ -958,10 +975,10 @@ public class RangerPrivilegesEvaluator extends AbstractPrivilegesEvaluator {
             }
         } else if (action.startsWith("indices:admin/create")
                 || (action.startsWith("indices:admin/mapping/put"))) {
-            allowAction = checkRangerAuthorization(user, caller, ACCESS_TYPE_WRITE, indices, ACCESS_TYPE_WRITE);
+            allowAction = checkRangerAuthorization(user, caller, ACCESS_TYPE_ADMIN, indices, ACCESS_TYPE_ADMIN);
             if (!allowAction) {
-                presponse.missingPrivileges.add(String.join(",", indices) + " : " + ACCESS_TYPE_WRITE);
-                log.info("Permission denied for User: " + user.getName() + " Action: " + action + ", required permission : " + ACCESS_TYPE_WRITE + " , indices: " + String.join(",", indices));
+                presponse.missingPrivileges.add(String.join(",", indices) + " : " + ACCESS_TYPE_ADMIN);
+                log.info("Permission denied for User: " + user.getName() + " Action: " + action + ", required permission : " + ACCESS_TYPE_ADMIN + " , indices: " + String.join(",", indices));
             }
         } else if ((action.startsWith("indices:data/read"))
                 || (action.startsWith("indices:admin/template/get"))
