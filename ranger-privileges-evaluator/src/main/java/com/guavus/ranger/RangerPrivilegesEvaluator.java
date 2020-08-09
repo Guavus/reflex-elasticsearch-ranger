@@ -73,7 +73,7 @@ import java.util.stream.Collectors;
  * @author Divyansh Jain
  */
 
-public class RangerPrivilegesEvaluator extends AbstractEvaluator {
+public class RangerPrivilegesEvaluator extends AbstractPrivilegesEvaluator {
 
     protected final Logger log = LogManager.getLogger(this.getClass());
     private static final Set<String> NULL_SET = Sets.newHashSet((String)null);
@@ -159,24 +159,23 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
 
         clusterName = settings.get(CLUSTER_NAME);
 
-        log.info("RANGER_ES_PLUGIN_APP_ID: " + RANGER_ES_PLUGIN_APP_ID);
+        log.debug("RANGER_ES_PLUGIN_APP_ID: " + RANGER_ES_PLUGIN_APP_ID);
 
         try {
             if (!initializeUGI(settings)) {
+                isInitialised = false;
                 log.error("UGI not getting initialized.");
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             isInitialised = false;
-            log.error(e.getCause());
-            e.printStackTrace();
+            log.error("Error initializing UGI due to {}", e.getStackTrace());
         }
 
         try {
             configureRangerPlugin(settings);
-        } catch (Exception e) {
+        } catch (Throwable e) {
             isInitialised = false;
-            log.error(e.getCause());
-            e.printStackTrace();
+            log.error("Error configuring ranger plugin due to {}", e.getStackTrace());
         }
 
         if (isInitialised) {
@@ -187,7 +186,7 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
 
     }
 
-    public void configureRangerPlugin(Settings settings) {
+    public void configureRangerPlugin(Settings settings) throws Exception {
         log.info("configureRangerPlugin");
 
         String svcType = settings.get(ConfigConstants.OPENDISTRO_AUTH_RANGER_SERVICE_TYPE, "elasticsearch");
@@ -196,30 +195,22 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
         log.debug("svcType : " + svcType);
         log.debug("appId : " + appId);
 
-        try {
-            RangerBasePlugin me = rangerPlugin;
-            if (me == null) {
-                synchronized(RangerPrivilegesEvaluator.class) {
-                    me = rangerPlugin;
-                    if (me == null) {
-                        me = rangerPlugin = new RangerBasePlugin(svcType, appId);
-                    }
+        RangerBasePlugin me = rangerPlugin;
+        if (me == null) {
+            synchronized(RangerPrivilegesEvaluator.class) {
+                me = rangerPlugin;
+                if (me == null) {
+                    me = rangerPlugin = new RangerBasePlugin(svcType, appId);
                 }
             }
-        } catch (Exception e) {
-            throw e;
         }
 
         log.debug("Security manager");
-        try{
-            SecurityManager sm = System.getSecurityManager();
-            if (sm != null) {
-                sm.checkPermission(new SpecialPermission());
-            }
-        } catch (Exception e) {
-            throw e;
-        }
 
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new SpecialPermission());
+        }
 
         log.debug("call doPrivileged");
         AccessController.doPrivileged(new PrivilegedAction() {
@@ -242,12 +233,8 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
                     String rangerResourcesPath = pluginPath + "resources/";
                     log.debug("method = " + method);
                     method.invoke(cl, new Object[]{new File(rangerResourcesPath).toURI().toURL()});
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     log.error("Error in adding ranger config files to classpath : " + e.getMessage());
-                    e.printStackTrace();
-                    if (log.isDebugEnabled()) {
-                        e.printStackTrace();
-                    }
                 }
 
                 return null;
@@ -255,9 +242,9 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
         });
 
         try {
-            log.info("ranger init");
+            log.debug("ranger init");
             rangerPlugin.init();
-            log.debug("ranger init try done");
+            log.debug("ranger init done");
         } catch (Throwable e) {
             log.error("Caught exception while ranger init. Please investigate: "
                     + e
@@ -269,8 +256,6 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
         }
 
         log.debug("end doPrivileged");
-        this.rangerUrl = RangerConfiguration.getInstance().get("ranger.plugin.elasticsearch.policy.rest.url");
-        log.debug("Ranger uri : " + rangerUrl);
         RangerDefaultAuditHandler auditHandler = new RangerDefaultAuditHandler();
         rangerPlugin.setResultProcessor(auditHandler);
     }
@@ -311,8 +296,8 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
         String coreSiteXmlPath = settings.get(ConfigConstants.OPENDISTRO_HADOOP_CORE_SITE_XML);
         String hdfsSiteXmlPath = settings.get(ConfigConstants.OPENDISTRO_HADOOP_HDFS_SITE_XML);
 
-        log.info("keytabPath : " + keytabPath);
-        log.info ("krbConf : " + krbConf);
+        log.debug("keytabPath : " + keytabPath);
+        log.debug ("krbConf : " + krbConf);
 
         if (!validateSettings(keytabPrincipal, keytabPath, krbConf, hadoopHomeDir, coreSiteXmlPath, hdfsSiteXmlPath))
             return false;
@@ -330,9 +315,8 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
                 //System.setProperty("fs.hdfs.impl", org.apache.hadoop.hdfs.DistributedFileSystem.class.getName());
                 try {
                     Config.refresh();
-                } catch (KrbException e) {
-                    e.printStackTrace();
-                    log.debug(e.getCause());
+                } catch (Throwable e) {
+                    log.error("Got exception while refreshing krb5 config : {} ", e.getStackTrace());
                 }
                 return null;
             }
@@ -345,8 +329,6 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
             sm.checkPermission(new SpecialPermission());
         }
 
-        log.info("getSecurityManager");
-
             initUGI = AccessController.doPrivileged(new PrivilegedAction<Boolean>() {
                 public Boolean run() {
                     try {
@@ -356,7 +338,6 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
                         conf.addResource(new Path(hdfsSiteXmlPath));
                         conf.set("fs.hdfs.impl",org.apache.hadoop.hdfs.DistributedFileSystem.class.getName());
                         conf.set("fs.file.impl", org.apache.hadoop.fs.LocalFileSystem.class.getName());
-                        log.info(conf);
                         UserGroupInformation.setConfiguration(conf);
                         UserGroupInformation ugi = UserGroupInformation.loginUserFromKeytabAndReturnUGI(keytabPrincipal, keytabPath);
                         MiscUtil.setUGILoginUser(ugi, null);
@@ -370,8 +351,6 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
                                 .map(Objects::toString)
                                 .collect(Collectors.joining("\n"))
                         );
-                        log.error(t.getCause());
-                        log.error("Exception while trying to initialize UGI: " + t.getMessage());
                         return false;
                     }
                     return true;
@@ -734,7 +713,7 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
     }
 
     @Override
-    public EvaluatorResponse evaluate(User user, String action, ActionRequest request, Task task) {
+    public PrivilegesEvaluatorResponse evaluate(User user, String action, ActionRequest request, Task task) {
         if (!isInitialized()) {
             throw new ElasticsearchSecurityException("Open Distro is not initialized.");
         }
@@ -748,7 +727,7 @@ public class RangerPrivilegesEvaluator extends AbstractEvaluator {
 
         final TransportAddress caller = Objects.requireNonNull((TransportAddress) this.threadContext.getTransient(ConfigConstants.OPENDISTRO_SECURITY_REMOTE_ADDRESS));
 
-        final RangerPrivilegesEvaluatorResponse presponse = new RangerPrivilegesEvaluatorResponse();
+        final PrivilegesEvaluatorResponse presponse = new PrivilegesEvaluatorResponse();
 
         if (log.isDebugEnabled()) {
             log.debug("### evaluate permissions for {} on {}", user, clusterService.localNode().getName());

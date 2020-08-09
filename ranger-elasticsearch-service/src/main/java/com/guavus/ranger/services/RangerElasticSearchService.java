@@ -10,8 +10,8 @@ import org.apache.ranger.plugin.model.RangerServiceDef;
 import org.apache.ranger.plugin.service.RangerBaseService;
 import org.apache.ranger.plugin.service.ResourceLookupContext;
 
-import com.gauvus.ranger.services.client.ServiceElasticSearchClient;
-import com.gauvus.ranger.services.client.ServiceElasticSearchConnectionMgr;
+import com.guavus.ranger.services.client.ServiceElasticSearchClient;
+import com.guavus.ranger.services.client.ServiceElasticSearchConnectionMgr;
 
 public class RangerElasticSearchService extends RangerBaseService{
 	private static final Log LOG = LogFactory.getLog(RangerElasticSearchService.class);

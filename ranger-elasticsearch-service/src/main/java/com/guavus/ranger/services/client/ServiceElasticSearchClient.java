@@ -1,4 +1,4 @@
-package com.gauvus.ranger.services.client;
+package com.guavus.ranger.services.client;
 
 import com.google.common.base.Strings;
 import com.kerb4j.client.SpnegoClient;
@@ -357,8 +357,4 @@ public class ServiceElasticSearchClient {
 		}
 	}
 
-	//java -cp  ranger-elasticsearch-service-1.0-SNAPSHOT-jar-with-dependencies.jar com.gauvus.ranger.services.client.ServiceElasticSearchClient rafsoak001-mst-01.cloud.in.guavus.com:9200 HTTP/rafsoak001-mst-01.cloud.in.guavus.com /etc/security/keytabs/hdfs.headless.keytab hdfs-rafd002@GVS.GGN
-
-	//cp /tmp/ranger-elasticsearch-service-1.0-SNAPSHOT-jar-with-dependencies.jar /usr/hdp/current/ranger-admin/ews/webapp/WEB-INF/classes/ranger-plugins/elasticsearch/ranger-elasticsearch-service-1.0-SNAPSHOT-jar-with-dependencies.jar
-	// java -Djava.security.debug=failures -Droot.log.level=TRACE -cp /tmp/ranger-elasticsearch-service-1.0-SNAPSHOT-jar-with-dependencies.jar com.gauvus.ranger.services.client.ServiceElasticSearchClient node-0.example.com:9200 HTTP/rafd002-slv-01.cloud.in.guavus.com /etc/security/keytabs/hdfs.headless.keytab hdfs-rafd002@GVS.GGN /etc/security/serverKeys/ranger/truststore.p12 admin123
 }

@@ -42,7 +42,10 @@
 	{
 	"itemId":3,
    	"name": "read",
-   	"label": "read"
+   	"label": "read",
+   	    "impliedGrants":[
+   	          "monitor"
+   	        ]
   	},
   	{
     "itemId":4,

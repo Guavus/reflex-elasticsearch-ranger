@@ -1,4 +1,4 @@
-package com.gauvus.ranger.services.client;
+package com.guavus.ranger.services.client;
 
 import java.util.HashMap;
 import java.util.Map;
