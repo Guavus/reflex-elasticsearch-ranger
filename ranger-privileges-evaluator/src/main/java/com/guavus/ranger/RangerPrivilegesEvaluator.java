@@ -24,6 +24,7 @@ import org.apache.ranger.plugin.policyengine.RangerAccessRequestImpl;
 import org.apache.ranger.plugin.policyengine.RangerAccessResourceImpl;
 import org.apache.ranger.plugin.policyengine.RangerAccessResult;
 import org.apache.ranger.plugin.service.RangerBasePlugin;
+import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.ElasticsearchSecurityException;
 import org.elasticsearch.SpecialPermission;
 import org.elasticsearch.action.*;
@@ -124,10 +125,10 @@ public class RangerPrivilegesEvaluator extends AbstractPrivilegesEvaluator {
     public RangerPrivilegesEvaluator(final ClusterService clusterService, final ThreadPool threadPool,
                                      final ConfigurationRepository configurationRepository, final ActionGroupHolder ah, final IndexNameExpressionResolver resolver,
                                      AuditLog auditLog, final Settings settings, final PrivilegesInterceptor privilegesInterceptor, final ClusterInfoHolder clusterInfoHolder,
-                                     final IndexResolverReplacer irr, boolean advancedModulesEnabled) {
+                                     final IndexResolverReplacer irr, boolean advancedModulesEnabled) throws Exception {
 
         super(configurationRepository, privilegesInterceptor);
-        log.info("### Loaded Privilege Evaluator : RangerPrivilegesEvaluator");
+        log.info("### Loading Privilege Evaluator : RangerPrivilegesEvaluator");
         this.clusterService = clusterService;
         this.resolver = resolver;
         this.auditLog = auditLog;
@@ -135,7 +136,6 @@ public class RangerPrivilegesEvaluator extends AbstractPrivilegesEvaluator {
         this.threadContext = threadPool.getThreadContext();
         this.clusterInfoHolder = clusterInfoHolder;
 
-        //this.typeSecurityDisabled = settings.getAsBoolean(ConfigConstants.OPENDISTRO_SECURITY_DISABLE_TYPE_SECURITY, false);
         configModel = new ConfigModel(ah);
         configurationRepository.subscribeOnChange("roles", configModel);
         configurationRepository.subscribeOnChange("rolesmapping", this);
@@ -154,8 +154,7 @@ public class RangerPrivilegesEvaluator extends AbstractPrivilegesEvaluator {
         String RANGER_ES_PLUGIN_APP_ID = settings.get(ConfigConstants.OPENDISTRO_AUTH_RANGER_APP_ID);
 
         if (RANGER_ES_PLUGIN_APP_ID == null) {
-            isInitialised = false;
-            throw new ElasticsearchSecurityException("Open Distro Ranger plugin enabled but appId config not valid");
+            throw new RangerPrivilegesEvaluatorException("Ranger Privileges Evaluator enabled but ranger elasticsearch appId config not valid");
         }
 
         clusterName = settings.get(CLUSTER_NAME);
@@ -164,19 +163,16 @@ public class RangerPrivilegesEvaluator extends AbstractPrivilegesEvaluator {
 
         try {
             if (!initializeUGI(settings)) {
-                isInitialised = false;
-                log.error("UGI not getting initialized.");
+                throw new RangerPrivilegesEvaluatorException("Failed to initialize UGI");
             }
         } catch (Throwable e) {
-            isInitialised = false;
-            log.error("Error initializing UGI due to {}", e.getStackTrace());
+            throw new RangerPrivilegesEvaluatorException("Error initializing UGI due to {}", e);
         }
 
         try {
             configureRangerPlugin(settings);
         } catch (Throwable e) {
-            isInitialised = false;
-            log.error("Error configuring ranger plugin due to {}", e.getStackTrace());
+            throw new RangerPrivilegesEvaluatorException("Error configuring ranger plugin due to {}", e);
         }
 
         if (isInitialised) {
@@ -235,7 +231,7 @@ public class RangerPrivilegesEvaluator extends AbstractPrivilegesEvaluator {
                     log.debug("method = " + method);
                     method.invoke(cl, new Object[]{new File(rangerResourcesPath).toURI().toURL()});
                 } catch (Throwable e) {
-                    log.error("Error in adding ranger config files to classpath : " + e.getMessage());
+                    throw new RangerPrivilegesEvaluatorException("Error in adding ranger config files to classpath : " + e.getMessage(), e);
                 }
 
                 return null;
@@ -247,7 +243,7 @@ public class RangerPrivilegesEvaluator extends AbstractPrivilegesEvaluator {
             rangerPlugin.init();
             log.debug("ranger init done");
         } catch (Throwable e) {
-            log.error("Caught exception while ranger init. Please investigate: "
+            throw new RangerPrivilegesEvaluatorException("Caught exception while ranger init. Please investigate: "
                     + e
                     + Arrays.asList(e.getStackTrace())
                     .stream()
@@ -285,7 +281,7 @@ public class RangerPrivilegesEvaluator extends AbstractPrivilegesEvaluator {
         return true;
     }
 
-    private boolean initializeUGI(Settings settings) throws Exception {
+    private boolean initializeUGI(Settings settings) {
         if (initUGI) {
             return true;
         }
@@ -301,7 +297,7 @@ public class RangerPrivilegesEvaluator extends AbstractPrivilegesEvaluator {
         log.debug ("krbConf : " + krbConf);
 
         if (!validateSettings(keytabPrincipal, keytabPath, krbConf, hadoopHomeDir, coreSiteXmlPath, hdfsSiteXmlPath))
-            return false;
+            throw new RangerPrivilegesEvaluatorException("Invalid settings. Please check.");
 
         log.debug("validated settings");
         log.debug("hadoop home dir doPrivileged");
@@ -317,7 +313,7 @@ public class RangerPrivilegesEvaluator extends AbstractPrivilegesEvaluator {
                 try {
                     Config.refresh();
                 } catch (Throwable e) {
-                    log.error("Got exception while refreshing krb5 config : {} ", e.getStackTrace());
+                    log.warn("Got exception while refreshing krb5 config : {} ", e.getStackTrace());
                 }
                 return null;
             }
@@ -345,14 +341,13 @@ public class RangerPrivilegesEvaluator extends AbstractPrivilegesEvaluator {
 
                         log.debug("isSecurityEnabled : " + UserGroupInformation.isSecurityEnabled());
                     } catch (Throwable t) {
-                        log.error("Caught exception in getting UserGroupInformation. Please investigate: "
+                        throw new RangerPrivilegesEvaluatorException("Caught exception in getting UserGroupInformation. Please investigate: "
                                 + t
                                 + Arrays.asList(t.getStackTrace())
                                 .stream()
                                 .map(Objects::toString)
                                 .collect(Collectors.joining("\n"))
                         );
-                        return false;
                     }
                     return true;
                 }
@@ -975,10 +970,10 @@ public class RangerPrivilegesEvaluator extends AbstractPrivilegesEvaluator {
             }
         } else if (action.startsWith("indices:admin/create")
                 || (action.startsWith("indices:admin/mapping/put"))) {
-            allowAction = checkRangerAuthorization(user, caller, ACCESS_TYPE_ADMIN, indices, ACCESS_TYPE_ADMIN);
+            allowAction = checkRangerAuthorization(user, caller, ACCESS_TYPE_WRITE, indices, ACCESS_TYPE_WRITE);
             if (!allowAction) {
-                presponse.missingPrivileges.add(String.join(",", indices) + " : " + ACCESS_TYPE_ADMIN);
-                log.info("Permission denied for User: " + user.getName() + " Action: " + action + ", required permission : " + ACCESS_TYPE_ADMIN + " , indices: " + String.join(",", indices));
+                presponse.missingPrivileges.add(String.join(",", indices) + " : " + ACCESS_TYPE_WRITE);
+                log.info("Permission denied for User: " + user.getName() + " Action: " + action + ", required permission : " + ACCESS_TYPE_WRITE + " , indices: " + String.join(",", indices));
             }
         } else if ((action.startsWith("indices:data/read"))
                 || (action.startsWith("indices:admin/template/get"))

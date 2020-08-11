@@ -29,6 +29,7 @@
 		<value>false</value>
 	</property>
 
+	<!-- urls are ignored if zookeepers are provided -->
 	<property>
 		<name>xasecure.audit.destination.solr.urls</name>
 		<value>NONE</value>
@@ -42,6 +43,21 @@
 	<property>
 		<name>xasecure.audit.destination.solr.collection</name>
 		<value>NONE</value>
+	</property>
+
+	<property>
+		<name>xasecure.audit.destination.solr.batch.filespool.dir</name>
+		<value>/var/log/hadoop/elasticsearch/audit/solr/spool</value>
+	</property>
+
+	<property>
+		<name>xasecure.audit.destination.solr.force.use.inmemory.jaas.config</name>
+		<value>false</value>
+	</property>
+
+	<property>
+		<name>xasecure.audit.provider.summary.enabled</name>
+		<value>true</value>
 	</property>
 
 

@@ -21,7 +21,7 @@
 		<name>ranger.plugin.elasticsearch.service.name</name>
 		<value>rafd002_elasticsearch</value>
 		<description>
-			Name of the Ranger service containing policies for this YARN instance
+			Name of the Ranger service instance containing policies for this YARN instance
 		</description>
 	</property>
 
@@ -59,7 +59,7 @@
 
 	<property>
 		<name>ranger.plugin.elasticsearch.policy.cache.dir</name>
-		<value>/etc/ranger/elasticsearch/policycache</value>
+		<value>/etc/ranger/rafd002_elasticsearch/policycache</value>
 		<description>
 			Directory where Ranger policies are cached after successful retrieval from the source
 		</description>

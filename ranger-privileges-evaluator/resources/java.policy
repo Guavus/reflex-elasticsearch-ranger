@@ -1,3 +1,10 @@
+/*
+ * These policies have to be provided at elasticsearch level because
+ * plugin-security.policy provides the permissions to core libs only.
+ * This way the policies are passed on to the opendistro plugin and
+ * applies to jars and files which are outside the plugin scope.
+ */
+
 grant {
 
     permission java.io.FilePermission "/etc/elasticsearch/-", "read";
@@ -13,7 +20,7 @@ grant {
     permission java.io.FilePermission "/usr/share/elasticsearch/-", "read";
     permission java.io.FilePermission "/var/lib/elasticsearch/-", "read";
     permission java.io.FilePermission "/var/log/elasticsearch/-", "read,write";
-    permission java.io.FilePermission "/var/log/hadoop/-", "read,write";
+    permission java.io.FilePermission "/var/log/hadoop/elasticsearch/-", "read,write";
     permission java.io.FilePermission "<<ALL FILES>>", "execute";
     permission java.io.FilePermission "setsid", "read";
 
