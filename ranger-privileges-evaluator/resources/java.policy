@@ -1,0 +1,71 @@
+grant {
+
+    permission java.io.FilePermission "/etc/elasticsearch/-", "read";
+    permission java.io.FilePermission "/etc/ranger/elasticsearch/-", "read,write,execute";
+    permission java.io.FilePermission "/etc/security/serverKeys/ranger/bpl-keystore.jks", "read";
+    permission java.io.FilePermission "/etc/security/serverKeys/ranger/truststore.jks", "read";
+    permission java.io.FilePermission "/proc/sys/net/core/somaxconn", "read";
+    permission java.io.FilePermission "/tmp/krb5cc_1073", "read";
+    permission java.io.FilePermission "/usr/hdp/3.1.4.0-315/hadoop","read,write,execute";
+    permission java.io.FilePermission "/usr/hdp/3.1.4.0-315/hadoop/conf/core-site.xml", "read";
+    permission java.io.FilePermission "/usr/hdp/3.1.4.0-315/hadoop/conf/hdfs-site.xml", "read";
+    permission java.io.FilePermission "/usr/lib/jvm/-", "read";
+    permission java.io.FilePermission "/usr/share/elasticsearch/-", "read";
+    permission java.io.FilePermission "/var/lib/elasticsearch/-", "read";
+    permission java.io.FilePermission "/var/log/elasticsearch/-", "read,write";
+    permission java.io.FilePermission "/var/log/hadoop/-", "read,write";
+    permission java.io.FilePermission "<<ALL FILES>>", "execute";
+    permission java.io.FilePermission "setsid", "read";
+
+    permission java.lang.management.ManagementPermission "monitor";
+    permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
+
+    permission java.lang.RuntimePermission "accessClassInPackage.sun.*";
+    permission java.lang.RuntimePermission "accessDeclaredMembers";
+    permission java.lang.RuntimePermission "accessUserInformation";
+    permission java.lang.RuntimePermission "createSecurityManager";
+    permission java.lang.RuntimePermission "getClassLoader";
+    permission java.lang.RuntimePermission "getenv.*";
+    permission java.lang.RuntimePermission "getenv.HADOOP_JAAS_DEBUG";
+    permission java.lang.RuntimePermission "getenv.KRB5CCNAME";
+    permission java.lang.RuntimePermission "getProtectionDomain";
+    permission java.lang.RuntimePermission "loadLibrary.hadoop";
+    permission java.lang.RuntimePermission "loadLibrary.jaas_unix";
+    permission java.lang.RuntimePermission "modifyThread";
+    permission java.lang.RuntimePermission "modifyThreadGroup";
+    permission java.lang.RuntimePermission "setContextClassLoader";
+    permission java.lang.RuntimePermission "setFactory";
+    permission java.lang.RuntimePermission "setSecurityManager";
+    permission java.lang.RuntimePermission "shutdownHooks";
+
+    permission java.net.NetPermission "getNetworkInformation";
+    permission java.net.NetPermission "getProxySelector";
+    permission java.net.SocketPermission "*", "connect,accept,resolve,listen";
+    permission java.net.URLPermission "*", "GET:Accept";
+
+    permission java.security.SecurityPermission "insertProvider";
+    permission java.security.SecurityPermission "putProviderProperty.BC";
+
+    permission java.util.PropertyPermission "*","read,write";
+
+    permission javax.management.MBeanPermission "*", "*";
+    permission javax.management.MBeanServerPermission "createMBeanServer";
+    permission javax.management.MBeanTrustPermission "register";
+
+    permission javax.security.auth.AuthPermission "createLoginContext.Client";
+    permission javax.security.auth.AuthPermission "doAs";
+    permission javax.security.auth.AuthPermission "getLoginConfiguration";
+    permission javax.security.auth.AuthPermission "getSubject";
+    permission javax.security.auth.AuthPermission "modifyPrincipals";
+    permission javax.security.auth.AuthPermission "modifyPrivateCredentials";
+    permission javax.security.auth.AuthPermission "setLoginConfiguration";
+
+    permission javax.security.auth.kerberos.ServicePermission "*", "accept,initiate";
+
+    permission javax.security.auth.PrivateCredentialPermission "javax.security.auth.kerberos.KerberosTicket * \"*\"", "read";
+    permission javax.security.auth.PrivateCredentialPermission "javax.security.auth.kerberos.KeyTab * \"*\"", "read";
+
+    permission org.elasticsearch.secure_sm.ThreadPermission "modifyArbitraryThread";
+    permission org.elasticsearch.secure_sm.ThreadPermission "modifyArbitraryThreadGroup";
+
+};
