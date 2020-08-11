@@ -62,6 +62,7 @@ import org.elasticsearch.transport.TransportRequest;
 import sun.security.krb5.Config;
 import sun.security.krb5.KrbException;
 
+import javax.security.auth.login.LoginException;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -163,16 +164,16 @@ public class RangerPrivilegesEvaluator extends AbstractPrivilegesEvaluator {
 
         try {
             if (!initializeUGI(settings)) {
-                throw new RangerPrivilegesEvaluatorException("Failed to initialize UGI");
+                throw new Exception("Failed to initialize UGI due to incorrect setting(s). Please check");
             }
         } catch (Throwable e) {
-            throw new RangerPrivilegesEvaluatorException("Error initializing UGI due to {}", e);
+            throw new Exception("Error initializing UGI due to {}", e);
         }
 
         try {
             configureRangerPlugin(settings);
         } catch (Throwable e) {
-            throw new RangerPrivilegesEvaluatorException("Error configuring ranger plugin due to {}", e);
+            throw new Exception("Error configuring ranger plugin due to {}", e);
         }
 
         if (isInitialised) {
@@ -281,7 +282,7 @@ public class RangerPrivilegesEvaluator extends AbstractPrivilegesEvaluator {
         return true;
     }
 
-    private boolean initializeUGI(Settings settings) {
+    private boolean initializeUGI(Settings settings) throws Exception {
         if (initUGI) {
             return true;
         }
@@ -297,7 +298,7 @@ public class RangerPrivilegesEvaluator extends AbstractPrivilegesEvaluator {
         log.debug ("krbConf : " + krbConf);
 
         if (!validateSettings(keytabPrincipal, keytabPath, krbConf, hadoopHomeDir, coreSiteXmlPath, hdfsSiteXmlPath))
-            throw new RangerPrivilegesEvaluatorException("Invalid settings. Please check.");
+            return false;
 
         log.debug("validated settings");
         log.debug("hadoop home dir doPrivileged");
