@@ -39,6 +39,8 @@ fi
  echo -e "# # # # # # # START : Creating RPM package for ranger privilege evaluator # # # # # # #"
  mkdir -p ${TEMP_PACKAGE_DIR}/${RANGER_PRIVILEGE_EVALUATOR_RPM_BASE_PATH}
  mkdir -p ${TEMP_PACKAGE_DIR}/${RANGER_PRIVILEGE_EVALUATOR_RPM_BASE_PATH}/lib
+ 
+ cp -r ./ranger-privileges-evaluator/resources ${TEMP_PACKAGE_DIR}/${RANGER_PRIVILEGE_EVALUATOR_RPM_BASE_PATH}
  cp -r ./ranger-privileges-evaluator/target/*.jar ${TEMP_PACKAGE_DIR}/${RANGER_PRIVILEGE_EVALUATOR_RPM_BASE_PATH}/lib
 
  fpm -f -s dir -t rpm --rpm-os linux -v ${RANGER_PRIVILEGE_EVALUATOR_RPM_VERSION} --iteration ${REL} --chdir $TEMP_PACKAGE_DIR -p $RANGER_PRIVILEGE_EVALUATOR_DIST_DIR_PLUGIN -n $RANGER_PRIVILEGE_EVALUATOR_RPM_NAME .
