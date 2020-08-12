@@ -89,8 +89,7 @@ public class ServiceElasticSearchClient {
 					}
 				});
 			} catch (Throwable e) {
-				e.printStackTrace();
-				throw new Exception("Could not login with the provided keytab");
+				throw new Exception("Could not login with the provided keytab due to", e);
 			}
 		}
 	}
@@ -125,18 +124,18 @@ public class ServiceElasticSearchClient {
 			lowLevelClient = getRestClient("https");
 			response = lowLevelClient.performRequest("GET", "/_cat/indices");
 		} catch (Throwable ie) {
-			LOG.info("Ignore if not trying https");
-			ie.printStackTrace();
+			LOG.info("Ignore warning if not trying https");
+			LOG.warn("could not connect using https due to " + ie.getCause());
 		    LOG.info("Trying http scheme");
 		    try {
 		        lowLevelClient.close();
 		    } catch (Exception e) {}
-		    
 			try {
 			    lowLevelClient = getRestClient("http");
 			    response = lowLevelClient.performRequest("GET", "/_cat/indices");
 			} catch (Throwable ioe) {
-				ioe.printStackTrace();
+				LOG.info("Ignore warning if not trying http");
+				LOG.warn("could not connect using http due to " +  ioe.getCause());
 			}
 		}
 		finally {
