@@ -128,7 +128,7 @@ public class RangerPrivilegesEvaluator extends AbstractPrivilegesEvaluator {
                                      final IndexResolverReplacer irr, boolean advancedModulesEnabled) throws Exception {
 
         super(configurationRepository, privilegesInterceptor);
-        log.info("### Loading Privilege Evaluator : RangerPrivilegesEvaluator");
+        log.info("### Loading RangerPrivilegesEvaluator Instance");
         this.clusterService = clusterService;
         this.resolver = resolver;
         this.auditLog = auditLog;
