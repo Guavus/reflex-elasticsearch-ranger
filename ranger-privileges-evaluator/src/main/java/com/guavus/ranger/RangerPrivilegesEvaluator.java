@@ -117,9 +117,8 @@ public class RangerPrivilegesEvaluator extends AbstractPrivilegesEvaluator {
     private final Map<Class<?>, Method> typesCache = Collections.synchronizedMap(new HashMap<Class<?>, Method>(100));
 
     private static RangerBasePlugin rangerPlugin = null;
-    private String rangerUrl = null;
     private boolean initUGI = false;
-    private boolean isInitialised = true;
+    private boolean isInitialised = false;
     private String clusterName = null;
 
     @Inject
@@ -176,11 +175,8 @@ public class RangerPrivilegesEvaluator extends AbstractPrivilegesEvaluator {
             throw e;
         }
 
-        if (isInitialised) {
-            log.info("RangerPrivilegesEvaluator successfully initialized");
-        } else {
-            log.error("RangerPrivilegesEvaluator initialization failed");
-        }
+        isInitialised = true;
+        log.info("RangerPrivilegesEvaluator successfully loaded");
 
     }
 
