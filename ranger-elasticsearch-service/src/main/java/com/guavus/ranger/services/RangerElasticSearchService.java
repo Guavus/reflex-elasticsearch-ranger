@@ -57,8 +57,6 @@ public class RangerElasticSearchService extends RangerBaseService{
 				ret = ServiceElasticSearchConnectionMgr.connectionTest(serviceName, configs);
 			} catch (Exception e) {
 				LOG.error("<== RangerElasticSearchService.validateConfig Error:" + e);
-				LOG.error(e.getCause());
-				e.printStackTrace();
 				throw e;
 			}
 		}

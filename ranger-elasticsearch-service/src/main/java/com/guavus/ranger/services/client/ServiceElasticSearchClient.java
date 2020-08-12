@@ -328,9 +328,6 @@ public class ServiceElasticSearchClient {
 
 	public static void main (String args[]) throws Exception {
 		Map<String, String> configs = new HashMap<String,String>();
-//	    configs.put("es.url", args[0]);
-//	    configs.put("username", args[1]);
-//	    configs.put("password", args[2]);
 		configs.put("es.url", args[0]);
 		if (args.length <= 5) {
 			configs.put("username", args[1]);
