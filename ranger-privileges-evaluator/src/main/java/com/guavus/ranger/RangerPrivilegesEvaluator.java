@@ -165,13 +165,15 @@ public class RangerPrivilegesEvaluator extends AbstractPrivilegesEvaluator {
         try {
             initializeUGI(settings);
         } catch (Throwable e) {
-            throw new RangerPrivilegesEvaluatorException("Error initializing UGI due to {}", e);
+            log.error("Unable to initialize ugi");
+            throw e;
         }
 
         try {
             configureRangerPlugin(settings);
         } catch (Throwable e) {
-            throw new RangerPrivilegesEvaluatorException("Error configuring ranger plugin due to {}", e);
+            log.error("Unable to configure ranger plugin");
+            throw e;
         }
 
         if (isInitialised) {
@@ -230,7 +232,7 @@ public class RangerPrivilegesEvaluator extends AbstractPrivilegesEvaluator {
                     log.debug("method = " + method);
                     method.invoke(cl, new Object[]{new File(rangerResourcesPath).toURI().toURL()});
                 } catch (Throwable e) {
-                    throw new RuntimeException("Error in adding ranger config files to classpath : " + e.getMessage(), e);
+                    throw new RangerPrivilegesEvaluatorException("Error in adding ranger config files to classpath : " + e.getMessage(), e);
                 }
 
                 return null;
@@ -242,7 +244,7 @@ public class RangerPrivilegesEvaluator extends AbstractPrivilegesEvaluator {
             rangerPlugin.init();
             log.debug("ranger init done");
         } catch (Throwable e) {
-            throw new Exception("Caught exception while ranger init. Please investigate: "
+            throw new RangerPrivilegesEvaluatorException("Caught exception while ranger init. Please investigate: "
                     + e
                     + Arrays.asList(e.getStackTrace())
                     .stream()
@@ -296,7 +298,7 @@ public class RangerPrivilegesEvaluator extends AbstractPrivilegesEvaluator {
         log.debug ("krbConf : " + krbConf);
 
         if (!validateSettings(keytabPrincipal, keytabPath, krbConf, hadoopHomeDir, coreSiteXmlPath, hdfsSiteXmlPath))
-            throw new IllegalArgumentException("Incorrect setting(s). Please check");
+            throw new RangerPrivilegesEvaluatorException("Incorrect setting(s). Please check");
 
         log.debug("validated settings");
         log.debug("hadoop home dir doPrivileged");
@@ -308,7 +310,6 @@ public class RangerPrivilegesEvaluator extends AbstractPrivilegesEvaluator {
                 System.setProperty("sun.security.util.debug enable", "true");
                 System.setProperty("sun.security.krb5.debug", "true");
                 System.setProperty("hadoop.security.authentication","kerberos");
-                //System.setProperty("fs.hdfs.impl", org.apache.hadoop.hdfs.DistributedFileSystem.class.getName());
                 try {
                     Config.refresh();
                 } catch (Throwable e) {
@@ -340,7 +341,7 @@ public class RangerPrivilegesEvaluator extends AbstractPrivilegesEvaluator {
 
                         log.debug("isSecurityEnabled : " + UserGroupInformation.isSecurityEnabled());
                     } catch (Throwable t) {
-                        throw new RuntimeException("Caught exception in getting UserGroupInformation. Please investigate: "
+                        throw new RangerPrivilegesEvaluatorException("Caught exception in getting UserGroupInformation. Please investigate: "
                                 + t
                                 + Arrays.asList(t.getStackTrace())
                                 .stream()
