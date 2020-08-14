@@ -8,7 +8,7 @@
 	<name>ranger-elasticsearch-service</name>
 	<url>http://maven.apache.org</url>
 	<properties>
-		<atlas.version>0.8.2</atlas.version>
+		<ranger.version>1.2.0</ranger.version>
 	</properties>
 	<build>
 		<plugins>
@@ -62,57 +62,7 @@
 		<dependency>
 			<groupId>org.apache.ranger</groupId>
 			<artifactId>ranger-tagsync</artifactId>
-			<!--version>0.7.2-SNAPSHOT</version-->
-			<version>0.7.0</version>
+			<version>${ranger.version}</version>
 		</dependency>
-        <dependency>
-            <groupId>org.apache.atlas</groupId>
-            <artifactId>atlas-notification</artifactId>
-            <version>${atlas.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.atlas</groupId>
-            <artifactId>atlas-typesystem</artifactId>
-            <version>${atlas.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.atlas</groupId>
-            <artifactId>atlas-client-v1</artifactId>
-            <version>${atlas.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.atlas</groupId>
-            <artifactId>atlas-client-common</artifactId>
-            <version>${atlas.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.atlas</groupId>
-            <artifactId>atlas-client-v2</artifactId>
-            <version>${atlas.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.atlas</groupId>
-            <artifactId>atlas-common</artifactId>
-            <version>${atlas.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-beans</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-core</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-asm</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.atlas</groupId>
-            <artifactId>atlas-intg</artifactId>
-            <version>${atlas.version}</version>
-        </dependency>
 	</dependencies>
 </project>
