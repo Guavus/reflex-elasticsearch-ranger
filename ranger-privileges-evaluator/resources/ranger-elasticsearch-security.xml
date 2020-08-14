@@ -19,7 +19,7 @@
 <configuration xmlns:xi="http://www.w3.org/2001/XInclude">
 	<property>
 		<name>ranger.plugin.elasticsearch.service.name</name>
-		<value>rafd002_elasticsearch</value>
+		<value>(ranger_app_id)</value>
 		<description>
 			Name of the Ranger service instance containing policies for this YARN instance
 		</description>
@@ -35,7 +35,7 @@
 
 	<property>
 		<name>ranger.plugin.elasticsearch.policy.rest.url</name>
-		<value>https://rafd002-mst-01.cloud.in.guavus.com:6182/</value>
+		<value>https://(ranger_url):(ranger_port)/</value>
 		<description>
 			URL to Ranger Admin
 		</description>
@@ -57,9 +57,10 @@
 		</description>
 	</property>
 
+	<!-- If changed then make the concordant changes in java.policy file -->
 	<property>
 		<name>ranger.plugin.elasticsearch.policy.cache.dir</name>
-		<value>/etc/ranger/rafd002_elasticsearch/policycache</value>
+		<value>/etc/ranger/elasticsearch/policycache</value>
 		<description>
 			Directory where Ranger policies are cached after successful retrieval from the source
 		</description>

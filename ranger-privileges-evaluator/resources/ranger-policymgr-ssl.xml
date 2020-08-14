@@ -29,18 +29,24 @@
             java truststore password
         </description>
     </property>
+
+    <!-- If changed then make the concordant changes in java.policy file -->
     <property>
         <name>xasecure.policymgr.clientssl.keystore.credential.file</name>
-        <value>localjceks://file/etc/elasticsearch/cred.jceks</value>
+        <value>localjceks://file/etc/ranger/elasticsearch/cred.jceks</value>
         <description>
-            java keystore credential file
+            Java keystore credential file.
+            This directory should be created by the user and cred.jceks should be placed here
         </description>
     </property>
+
+    <!-- If changed then make the concordant changes in java.policy file -->
     <property>
         <name>xasecure.policymgr.clientssl.truststore.credential.file</name>
-        <value>localjceks://file/etc/elasticsearch/cred.jceks</value>
+        <value>localjceks://file/etc/ranger/elasticsearch/cred.jceks</value>
         <description>
-            java truststore credential file
+            Java truststore credential file
+            This directory should be created by the user and cred.jceks should be placed here
         </description>
     </property>
 </configuration>

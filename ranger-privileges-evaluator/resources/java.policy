@@ -13,9 +13,9 @@ grant {
     permission java.io.FilePermission "/etc/security/serverKeys/ranger/truststore.jks", "read";
     permission java.io.FilePermission "/proc/sys/net/core/somaxconn", "read";
     permission java.io.FilePermission "/tmp/krb5cc_1073", "read";
-    permission java.io.FilePermission "/usr/hdp/3.1.4.0-315/hadoop","read,write,execute";
-    permission java.io.FilePermission "/usr/hdp/3.1.4.0-315/hadoop/conf/core-site.xml", "read";
-    permission java.io.FilePermission "/usr/hdp/3.1.4.0-315/hadoop/conf/hdfs-site.xml", "read";
+    permission java.io.FilePermission "/usr/hdp/3.1.4.0-315/hadoop","read,write,execute";          // change accordingly
+    permission java.io.FilePermission "/usr/hdp/3.1.4.0-315/hadoop/conf/core-site.xml", "read";    // change accordingly
+    permission java.io.FilePermission "/usr/hdp/3.1.4.0-315/hadoop/conf/hdfs-site.xml", "read";    // change accordingly
     permission java.io.FilePermission "/usr/lib/jvm/-", "read";
     permission java.io.FilePermission "/usr/share/elasticsearch/-", "read";
     permission java.io.FilePermission "/var/lib/elasticsearch/-", "read";

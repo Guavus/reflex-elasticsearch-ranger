@@ -23,13 +23,14 @@
 	</property>
 
     <!-- Solr audit provider configuration -->
+	<!-- Get the below configs from /etc/hadoop/conf/ranger-hdfs-audit.xml -->
 
 	<property>
 		<name>xasecure.audit.destination.solr</name>
 		<value>false</value>
 	</property>
 
-	<!-- urls are ignored if zookeepers are provided -->
+	<!-- ignore if zookeepers are configured -->
 	<property>
 		<name>xasecure.audit.destination.solr.urls</name>
 		<value>NONE</value>
@@ -45,6 +46,7 @@
 		<value>NONE</value>
 	</property>
 
+	<!-- If changed then make the concordant changes in java.policy file -->
 	<property>
 		<name>xasecure.audit.destination.solr.batch.filespool.dir</name>
 		<value>/var/log/hadoop/elasticsearch/audit/solr/spool</value>
