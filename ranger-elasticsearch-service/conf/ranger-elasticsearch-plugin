@@ -22,8 +22,8 @@
   "accessTypes":[ 
 	{
 	"itemId":1,
-   	"name": "es_admin",
-   	"label": "es_admin",
+   	"name": "admin",
+   	"label": "admin",
         "impliedGrants":[
               "read",
               "write"
@@ -42,51 +42,74 @@
 	{
 	"itemId":3,
    	"name": "read",
-   	"label": "read"
-  	}
+   	"label": "read",
+   	    "impliedGrants":[
+   	          "monitor"
+   	        ]
+  	},
+  	{
+    "itemId":4,
+    "name": "monitor",
+    "label": "monitor"
+    }
 ],
-  "configs":[ 
-	{
+  "configs":[
+    {
         "itemId":1,
         "name": "es.url",
         "type": "string",
         "mandatory": true,
         "label": "ES url"
         },
+    {
+        "itemId": 2,
+        "name": "truststorepath",
+        "mandatory": false,
+        "label": "Truststore Path",
+        "type": "string"
+        },
+    {
+        "itemId": 3,
+        "name": "truststorepass",
+        "mandatory": false,
+        "label": "Truststore Password",
+        "type": "password"
+        },
+
 	{
-        "itemId":2,
+        "itemId":4,
         "name": "es.spn",
         "type": "string",
         "mandatory": false,
         "label": "ES Server Kerberos SPN"
         },
 	{
-        "itemId":3,
+        "itemId":5,
         "name": "principal",
         "type": "string",
         "mandatory": false,
         "label": "Kerberos Principal"
         },
 	{
-        "itemId":4,
+        "itemId":6,
         "name": "keytab",
         "type": "string",
         "mandatory": false,
         "label": "Kerberos KeyTab"
         },
 	{
-        "itemId":5,
+        "itemId":7,
         "name": "username",
         "type": "string",
         "mandatory": false,
         "label": "Username"
         },
 	{
-        "itemId":6,
-        "name": "password",
+        "itemId":8,
+        "name": "userpass",
         "type": "password",
         "mandatory": false,
-        "label": "Password"
+        "label": "User Password"
         }
 ],
   "enums": [ ],

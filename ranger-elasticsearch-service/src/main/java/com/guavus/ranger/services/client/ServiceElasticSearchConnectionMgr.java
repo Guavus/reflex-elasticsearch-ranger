@@ -1,4 +1,4 @@
-package com.gauvus.ranger.services.client;
+package com.guavus.ranger.services.client;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,13 +16,20 @@ public class ServiceElasticSearchConnectionMgr {
 	                + serviceName + ". URL information not provided.");
 	    }
 
+	    if ((!Strings.isNullOrEmpty(configs.get("truststorepath"))
+				&& Strings.isNullOrEmpty(configs.get("truststorepass")))
+				|| (Strings.isNullOrEmpty(configs.get("truststorepath"))
+				&& !Strings.isNullOrEmpty(configs.get("truststorepass")))) {
+	    	throw new Exception("Please provide values for both truststore password and truststore path or none");
+		}
+
 	    if (
 	            ((Strings.isNullOrEmpty(configs.get("es.spn"))) ||
 	             (Strings.isNullOrEmpty(configs.get("principal"))) ||
 	             (Strings.isNullOrEmpty(configs.get("keytab"))))
 	            &&
 	            ((Strings.isNullOrEmpty(configs.get("username"))) ||
-	             (Strings.isNullOrEmpty(configs.get("password"))))
+	             (Strings.isNullOrEmpty(configs.get("userpass"))))
 	       ) {
 	                
 	        throw new Exception("Required properties are not set for "
