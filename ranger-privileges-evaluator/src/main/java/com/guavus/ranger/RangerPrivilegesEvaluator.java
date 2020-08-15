@@ -125,7 +125,7 @@ public class RangerPrivilegesEvaluator extends AbstractPrivilegesEvaluator {
     public RangerPrivilegesEvaluator(final ClusterService clusterService, final ThreadPool threadPool,
                                      final ConfigurationRepository configurationRepository, final ActionGroupHolder ah, final IndexNameExpressionResolver resolver,
                                      AuditLog auditLog, final Settings settings, final PrivilegesInterceptor privilegesInterceptor, final ClusterInfoHolder clusterInfoHolder,
-                                     final IndexResolverReplacer irr, boolean advancedModulesEnabled) throws Exception {
+                                     final IndexResolverReplacer irr, boolean advancedModulesEnabled) throws ElasticsearchException {
 
         super(configurationRepository, privilegesInterceptor);
         log.info("### Loading RangerPrivilegesEvaluator Instance");
@@ -163,14 +163,14 @@ public class RangerPrivilegesEvaluator extends AbstractPrivilegesEvaluator {
 
         try {
             initializeUGI(settings);
-        } catch (Throwable e) {
+        } catch (RangerPrivilegesEvaluatorException e) {
             log.error("Unable to initialize ugi");
             throw e;
         }
 
         try {
             configureRangerPlugin(settings);
-        } catch (Throwable e) {
+        } catch (RangerPrivilegesEvaluatorException e) {
             log.error("Unable to configure ranger plugin");
             throw e;
         }
@@ -180,7 +180,7 @@ public class RangerPrivilegesEvaluator extends AbstractPrivilegesEvaluator {
 
     }
 
-    public void configureRangerPlugin(Settings settings) throws Exception {
+    public void configureRangerPlugin(Settings settings) throws RangerPrivilegesEvaluatorException {
         log.info("configureRangerPlugin");
 
         String svcType = settings.get(ConfigConstants.OPENDISTRO_AUTH_RANGER_SERVICE_TYPE, "elasticsearch");
@@ -278,7 +278,7 @@ public class RangerPrivilegesEvaluator extends AbstractPrivilegesEvaluator {
         return true;
     }
 
-    private boolean initializeUGI(Settings settings) throws Exception {
+    private boolean initializeUGI(Settings settings) throws RangerPrivilegesEvaluatorException {
         if (initUGI) {
             return true;
         }

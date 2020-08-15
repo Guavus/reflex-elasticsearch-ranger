@@ -1,8 +1,8 @@
 package com.guavus.ranger;
 
-import org.elasticsearch.ElasticsearchSecurityException;
+import org.elasticsearch.ElasticsearchException;
 
-public class RangerPrivilegesEvaluatorException extends ElasticsearchSecurityException {
+public class RangerPrivilegesEvaluatorException extends ElasticsearchException {
     public RangerPrivilegesEvaluatorException(String errorMessage) {
         super(errorMessage);
     }

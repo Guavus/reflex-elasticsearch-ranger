@@ -124,7 +124,6 @@ public class ServiceElasticSearchClient {
 			lowLevelClient = getRestClient("https");
 			response = lowLevelClient.performRequest("GET", "/_cat/indices");
 		} catch (Throwable ie) {
-			LOG.info("Ignore warning if not trying https");
 			LOG.warn("could not connect using https due to " + ie.getCause());
 		    LOG.info("Trying http scheme");
 		    try {
@@ -134,7 +133,6 @@ public class ServiceElasticSearchClient {
 			    lowLevelClient = getRestClient("http");
 			    response = lowLevelClient.performRequest("GET", "/_cat/indices");
 			} catch (Throwable ioe) {
-				LOG.info("Ignore warning if not trying http");
 				LOG.warn("could not connect using http due to " +  ioe.getCause());
 			}
 		}
