@@ -3,6 +3,15 @@
 ## About this plugin
 This repostiory hosts Ranger plugin for Elasticsearch. The plugin supports index level access control policy on Ranger UI. For enabling tag based policy support for Elasticsearch, entities of TYPE 'es_index' in Atlas should be created in Atlas and Ranger should configured to sync with Atlas.
 
+## Supported Versions
+
+The plugins are tested and compatible with:
+
+   1. Ranger 1.2.0
+   2. OpenDistro 0.10
+   3. Elasticsearch 6.8.3
+   4. HDP 3.1.5
+
 ## Building Plugin
 1. Clone github repo, ``git clone https://github.com/Guavus/reflex-elasticsearch-ranger.git``
 2. To build plugin jars, run ``make all``
